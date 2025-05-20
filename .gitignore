@@ -8,7 +8,11 @@ venv/
 .env/
 .env
 .env.*
-!.env.test
+.env.dev
+.env.prod
+.env.local
+.env.test
+!.env.sample
 
 # VS Code and IDEs
 .vscode/
