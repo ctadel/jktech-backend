@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from common.database import engine
+from common.logger import logger
+from common.middleware import AccessLogMiddleware
 from config import settings
 from api.router import router
 
@@ -17,8 +19,11 @@ app.include_router(
         prefix='/api/' + settings.API_VERSION
     )
 
+app.add_middleware(AccessLogMiddleware)
+
 @app.get("/")
 async def health_check():
+    logger.debug("checking if this is working")
     return {"status": "ok"}
 
 #TODO: Remove this after development

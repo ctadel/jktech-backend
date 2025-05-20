@@ -1,25 +1,26 @@
-from os import getenv
+from typing import List
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "JK Tech QnA"
     API_VERSION: str = "v1"
+    ENV:str = 'PROD'
+    LOG_DIRECTORY:str = 'logs'
+
     DATABASE_URL: str
+
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    ENV:str = 'PROD'
+
+    CORS_ALLOWED_ORIGINS: str = "*"
+
+    @property
+    def CORS_ORIGINS(self) -> List[str]:
+        return [origin.strip() for origin in self.CORS_ALLOWED_ORIGINS.split(",")]
 
     class Config:
-        try:
-            if env_name:=getenv('ENV','').lower():
-                env_file = f'.env.{env_name}'
-            else:
-                env_file = ".env"
-        except Exception as e:
-            print("Exception while reading the environment (Using .env)\n", e)
-            env_file = ".env"
-
+        env_file = ".env"
 
     def is_production_server(self):
         return self.ENV.upper() == 'PROD'
