@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from modules.users.models import User, UserRole
+from modules.users.schemas import *
 from common.exceptions import UserAlreadyExistsException, UserNotFoundException
 
 
@@ -16,14 +17,14 @@ async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
 
 async def create_user(
     db: AsyncSession,
-    username: str,
+    data:RegisterRequest,
     hashed_password: str,
-    role: UserRole = UserRole.VIEWER
 ) -> User:
-    if await get_user_by_username(db, username):
+    if await get_user_by_username(db, data.username):
         raise UserAlreadyExistsException()
 
-    user = User(username=username, hashed_password=hashed_password, role=role)
+    data = data.model_dump(exclude=['password'])
+    user = User(**data, hashed_password=hashed_password)
     db.add(user)
     await db.commit()
     await db.refresh(user)

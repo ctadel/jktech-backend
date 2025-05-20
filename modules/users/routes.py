@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.post("/register", response_model=TokenResponse)
 async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    user = await service.register_user(db, data.username, data.password)
+    user = await service.register_user(db, data)
     token = service.generate_token(user)
     return {"access_token": token}
 

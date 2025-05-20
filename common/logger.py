@@ -35,3 +35,5 @@ logger = logging.getLogger(settings.PROJECT_NAME)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+logging.getLogger("sqlalchemy.engine").setLevel(logging.CRITICAL)
