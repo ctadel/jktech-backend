@@ -28,7 +28,7 @@ def authorization_level_required(min_role: AccountLevel):
         except KeyError:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid user role"
+                detail="Invalid Access level"
             )
         if current_level < min_role:
             raise HTTPException(

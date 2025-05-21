@@ -35,8 +35,7 @@ class User(Base):
     full_name = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
 
-    # Relationships
-    documents = relationship(Document, back_populates="owner", cascade="all, delete-orphan")
+    documents = relationship(Document, back_populates="user", cascade="all, delete-orphan")
 
     class Config:
         extra = "ignore"

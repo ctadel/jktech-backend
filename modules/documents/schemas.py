@@ -1,16 +1,20 @@
 from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 
-class DocumentUpload(BaseModel):
-    filename: str
-    is_public: bool = False
+class UploadDocumentRequest(BaseModel):
+    title: str
+    is_private_document: Optional[bool] = False
 
 class DocumentResponse(BaseModel):
     id: int
-    filename: str
+    document_key: str
+    title: str
+    file_path: str
     version: int
-    is_public: bool
     uploaded_at: datetime
+    is_private_document: bool
+    user_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

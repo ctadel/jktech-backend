@@ -13,6 +13,5 @@ class Document(Base):
     version = Column(Integer, default=1)
     uploaded_at = Column(DateTime, default=datetime.now)
     is_private_document = Column(Boolean, default=False)
-
     user_id = Column(Integer, ForeignKey("users.id"))
-    owner = relationship("User", back_populates="documents")
+    user = relationship("User", back_populates="documents")
