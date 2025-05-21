@@ -1,14 +1,26 @@
-from sqlalchemy import Column, Integer, String, Enum as SqlEnum, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
-from enum import Enum
+from enum import IntEnum, auto
 from datetime import datetime
 from common.database import Base
 from modules.documents.models import Document
 
-class UserRole(str, Enum):
-    ADMIN = "admin"
-    EDITOR = "editor"
-    VIEWER = "viewer"
+class AccountLevel(IntEnum):
+    """
+        With no account
+            - gets to (limited) prompt on free available documents
+        Basic users
+            - Regular signed-up users gets to prompt more free available documents
+            - Gets to prompt on self uploaded (limited) documents
+        Premium users
+            - Gets all the features available
+        Moderators
+            - Superuser interface to manually intervene (like django-admin dashboard)
+
+    """
+    BASIC = auto()  #Free users
+    PREMIUM = auto()  #Premium users
+    MODERATOR = auto() #Super-user stuff
 
 class User(Base):
     __tablename__ = "users"
@@ -17,7 +29,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=False, nullable=True)
     hashed_password = Column(String, nullable=False)
-    role = Column(SqlEnum(UserRole), default=UserRole.VIEWER)
+    account_type = Column(String, default=AccountLevel.BASIC.name, nullable=False)
 
     # Additional fields
     full_name = Column(String, nullable=True)

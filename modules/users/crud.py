@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from modules.users.models import User, UserRole
-from modules.users.schemas import *
-from common.exceptions import UserAlreadyExistsException, UserNotFoundException
+from modules.users.models import User, AccountLevel
+from modules.users.schemas import RegisterRequest
+from common.exceptions import UserAlreadyExistsException, UserNotFoundException, InvalidUserParameters
 
 
 async def get_user_by_username(db: AsyncSession, username: str) -> User | None:
@@ -24,19 +24,35 @@ async def create_user(
         raise UserAlreadyExistsException()
 
     data = data.model_dump(exclude=['password'])
-    user = User(**data, hashed_password=hashed_password)
+    user = User(
+            **data,
+            hashed_password=hashed_password,
+            account_type = AccountLevel.BASIC.name
+        )
     db.add(user)
     await db.commit()
     await db.refresh(user)
     return user
 
-
-async def update_user_role(db: AsyncSession, user_id: int, role: UserRole) -> User:
-    user = await get_user_by_id(db, user_id)
+async def update_user(
+    db: AsyncSession,
+    user_id:int,
+    data:RegisterRequest,
+) -> User:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
     if not user:
-        raise UserNotFoundException()
+        raise UserNotFoundException(status_code=404, detail="User not found")
 
-    user.role = role
+    user_from_email = await db.execute(select(User).where(User.email == data.email))
+    if user_from_email.one():
+        raise InvalidUserParameters(status_code=404, detail="Email already exists")
+
+    if data.full_name is not None:
+        user.full_name = data.full_name
+    if data.email is not None:
+        user.email = data.email
+
     await db.commit()
     await db.refresh(user)
     return user
