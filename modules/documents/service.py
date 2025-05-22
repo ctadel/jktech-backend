@@ -1,14 +1,17 @@
+import random
+from asyncio import sleep
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import HTTPException, UploadFile, status
 from typing import List, Optional
 from uuid import uuid4
 
+from common.logger import logger
 from modules.documents import crud
 from modules.documents.models import Document
 from modules.documents.storage import LocalStorage
 from modules.users.models import AccountLevel
-from common.exceptions import FreeTierException, InvalidDocumentException
+from common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException
 
 #TODO: use based on environment
 storage = LocalStorage()
@@ -42,6 +45,10 @@ async def upload_document(
 
     file_path = await storage.upload_file(file.file, f"{document_key}_{version}")
 
+    ingestion = await process_document_ingestion(file_path)
+    if not ingestion:
+        raise DocumentIngestionException('__\(  )/')
+
     new_doc = await crud.create_document(
         db=db,
         user=user,
@@ -71,3 +78,10 @@ async def get_documents_by_key(db: AsyncSession, key: str):
 
 async def get_public_documents_by_user(db: AsyncSession, username: str):
     return await crud.get_public_documents_by_username(db, username)
+
+async def process_document_ingestion(file_path):
+    # Simulating the LLM Blackbox call
+    delay = random.randint(3, 10)
+    await sleep(delay)
+    logger.info(f"The LLM took {delay} seconds to ingest the document")
+    return True
