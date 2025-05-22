@@ -40,7 +40,7 @@ async def update_profile(
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    updated_user = await service.update_user_profile(db, current_user.id, data)
+    updated_user = await service.update_user_profile(db, current_user, data)
     return {"message": "Profile updated", "user": updated_user}
 
 @router.put("/password")

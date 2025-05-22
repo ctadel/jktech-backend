@@ -37,16 +37,11 @@ async def create_user(
 
 async def update_user(
     db: AsyncSession,
-    user_id:int,
+    user:User,
     data:RegisterRequest,
 ) -> User:
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise UserNotFoundException(status_code=404, detail="User not found")
-
     user_from_email = await db.execute(select(User).where(User.email == data.email))
-    if user_from_email.one():
+    if user_from_email.first():
         raise InvalidUserParameters(status_code=404, detail="Email already exists")
 
     if data.full_name is not None:

@@ -14,8 +14,8 @@ async def register_user(db: AsyncSession, data:RegisterRequest):
     hashed_pw = hash_password(data.password)
     return await crud.create_user(db, data, hashed_pw)
 
-async def update_user_profile(db:AsyncSession, user_id:int, data: UpdateProfileRequest):
-    updated_profile = await crud.update_user(db, user_id, data)
+async def update_user_profile(db:AsyncSession, user:User, data: UpdateProfileRequest):
+    updated_profile = await crud.update_user(db, user, data)
     return updated_profile
 
 async def update_user_password(db: AsyncSession, user: User, old_password: str, new_password: str):
