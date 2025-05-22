@@ -35,7 +35,6 @@ app.add_middleware(AccessLogMiddleware)
 
 @app.get("/")
 async def health_check():
-    logger.debug("checking if this is working")
     return {"status": "ok"}
 
 #TODO: Remove this after development
