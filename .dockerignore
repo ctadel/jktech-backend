@@ -8,3 +8,4 @@ logs
 .git
 .gitignore
 .pytest_cache
+uploads
