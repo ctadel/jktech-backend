@@ -1,11 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from common.auth import hash_password, verify_password, create_access_token
-from modules.users import crud
-from modules.users.schemas import *
-from common.exceptions import InvalidCredentialsException
-from modules.users.models import User
-from modules.users.schemas import UpdateProfileRequest
 from sqlalchemy.future import select
+
+from app.common.auth import hash_password, verify_password, create_access_token
+from app.modules.users import crud
+from app.modules.users.schemas import *
+from app.common.exceptions import InvalidCredentialsException
+from app.modules.users.models import User
+from app.modules.users.schemas import UpdateProfileRequest
 
 async def register_user(db: AsyncSession, data:RegisterRequest):
     #TODO: Implement payment gateway to update the users to premium

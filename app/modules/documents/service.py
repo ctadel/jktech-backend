@@ -6,12 +6,12 @@ from fastapi import HTTPException, UploadFile, status
 from typing import List, Optional
 from uuid import uuid4
 
-from common.logger import logger
-from modules.documents import crud
-from modules.documents.models import Document
-from modules.documents.storage import LocalStorage
-from modules.users.models import AccountLevel
-from common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException
+from app.common.logger import logger
+from app.modules.documents import crud
+from app.modules.documents.models import Document
+from app.modules.documents.storage import LocalStorage
+from app.modules.users.models import AccountLevel
+from app.common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException
 
 #TODO: use based on environment
 storage = LocalStorage()

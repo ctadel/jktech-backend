@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from common.database import Base
+from app.common.database import Base
 
 class Document(Base):
     __tablename__ = "documents"

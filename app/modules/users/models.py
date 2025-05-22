@@ -2,8 +2,9 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from enum import IntEnum, auto
 from datetime import datetime
-from common.database import Base
-from modules.documents.models import Document
+
+from app.common.database import Base
+from app.modules.documents.models import Document
 
 class AccountLevel(IntEnum):
     """
@@ -36,6 +37,3 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now)
 
     documents = relationship(Document, back_populates="user", cascade="all, delete-orphan")
-
-    class Config:
-        extra = "ignore"

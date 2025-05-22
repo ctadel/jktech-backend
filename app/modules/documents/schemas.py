@@ -15,6 +15,3 @@ class DocumentResponse(BaseModel):
     uploaded_at: datetime
     is_private_document: bool
     user_id: int
-
-    class Config:
-        from_attributes = True

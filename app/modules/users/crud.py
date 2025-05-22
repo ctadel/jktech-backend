@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from modules.users.models import User, AccountLevel
-from modules.users.schemas import RegisterRequest
-from common.exceptions import UserAlreadyExistsException, UserNotFoundException, InvalidUserParameters
+
+from app.modules.users.models import User, AccountLevel
+from app.modules.users.schemas import RegisterRequest
+from app.common.exceptions import UserAlreadyExistsException, UserNotFoundException, InvalidUserParameters
 
 
 async def get_user_by_username(db: AsyncSession, username: str) -> User | None:

@@ -2,12 +2,11 @@ from fastapi import APIRouter, Form, UploadFile, File, Depends, HTTPException, s
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
-from common.database import get_db
-from common.dependencies import authorization_level_required, get_current_user
-from modules.users.models import User, AccountLevel
-
-from modules.documents import service
-from modules.documents.schemas import DocumentResponse
+from app.common.database import get_db
+from app.common.dependencies import authorization_level_required, get_current_user
+from app.modules.users.models import User, AccountLevel
+from app.modules.documents import service
+from app.modules.documents.schemas import DocumentResponse
 
 router = APIRouter()
 

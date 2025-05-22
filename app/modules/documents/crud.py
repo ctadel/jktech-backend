@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from typing import List, Optional
 
-from common.exceptions import UserNotFoundException
-from modules.documents.models import Document
+from app.common.exceptions import UserNotFoundException
+from app.modules.documents.models import Document
 
 async def create_document(
     db: AsyncSession,

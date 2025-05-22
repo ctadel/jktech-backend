@@ -1,11 +1,11 @@
 from typing import List
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "JK Tech QnA"
     API_VERSION: str = "v1"
-    ENV:str = 'PROD'
-    LOG_DIRECTORY:str = 'logs'
+    ENV: str = 'PROD'
+    LOG_DIRECTORY: str = 'logs'
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
 
@@ -19,8 +19,9 @@ class Settings(BaseSettings):
     def CORS_ORIGINS(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ALLOWED_ORIGINS.split(",")]
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+    )
 
     def is_production_server(self):
         return self.ENV.upper() == 'PROD'

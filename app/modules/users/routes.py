@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from common.database import get_db
-from common.exceptions import InvalidCredentialsException, InvalidUserParameters
-from modules.users import service
-from modules.users.models import AccountLevel
-from modules.users.schemas import TokenResponse, UserProfile, LoginRequest, RegisterRequest, \
+
+from app.common.database import get_db
+from app.common.exceptions import InvalidCredentialsException, InvalidUserParameters
+from app.modules.users import service
+from app.modules.users.models import AccountLevel
+from app.modules.users.schemas import TokenResponse, UserProfile, LoginRequest, RegisterRequest, \
                                     UpdateProfileRequest, UpdatePasswordRequest, UpgradeAccountRequest
-from common.dependencies import authorization_level_required, get_current_user
+from app.common.dependencies import authorization_level_required, get_current_user
 
 router = APIRouter()
 
