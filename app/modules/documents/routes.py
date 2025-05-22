@@ -54,7 +54,7 @@ async def delete_document(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    await service.delete_document(db=db, user=current_user, doc_id=document_id)
+    await service.delete_document(db, document_id, current_user)
     return
 
 

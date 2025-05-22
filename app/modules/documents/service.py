@@ -12,6 +12,7 @@ from app.modules.documents.models import Document
 from app.modules.documents.storage import LocalStorage
 from app.modules.users.models import AccountLevel
 from app.common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException
+from app.config import settings
 
 #TODO: use based on environment
 storage = LocalStorage()
@@ -45,9 +46,10 @@ async def upload_document(
 
     file_path = await storage.upload_file(file.file, f"{document_key}_{version}")
 
-    ingestion = await process_document_ingestion(file_path)
-    if not ingestion:
-        raise DocumentIngestionException('__\(  )/')
+    if settings.is_production_server():
+        ingestion = await process_document_ingestion(file_path)
+        if not ingestion:
+            raise DocumentIngestionException('__\(  )/__')
 
     new_doc = await crud.create_document(
         db=db,

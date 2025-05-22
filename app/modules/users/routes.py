@@ -51,7 +51,7 @@ async def update_password(
 ):
     success = await service.update_user_password(db, current_user, data.old_password, data.new_password)
     if not success:
-        raise InvalidCredentialsException(status_code=400, detail="Old password is incorrect")
+        raise InvalidCredentialsException()
     return {"message": "Password updated successfully"}
 
 @router.put("/profile/update-account-type")

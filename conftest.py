@@ -54,9 +54,9 @@ async def client(db: AsyncSession):
 @pytest_asyncio.fixture
 async def test_user(db: AsyncSession):
     user = User(
-        username="testuser",
-        full_name="Test User",
-        email="test@example.com",
+        username="ctadel",
+        full_name="Prajwal Dev",
+        email="prajwal@jktech.com",
         account_type=AccountLevel.BASIC.name,
         hashed_password=hash_password("testpass")
     )
@@ -64,13 +64,3 @@ async def test_user(db: AsyncSession):
     await db.commit()
     await db.refresh(user)
     return user
-
-# Provide an auth header using the test user
-@pytest_asyncio.fixture
-async def auth_header(client, test_user):
-    response = await client.post("/users/login", json={
-        "username": test_user.username,
-        "password": "testpass"
-    })
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
