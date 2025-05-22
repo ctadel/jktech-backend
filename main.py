@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from sqlalchemy.engine.url import make_url
 import uvicorn
 
 from common.database import engine
@@ -10,6 +12,16 @@ from api.router import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # This will initialize the local sqlite db
+    # for docker and testing sessions
+
+    db_url = make_url(settings.DATABASE_URL)
+    if db_url.drivername.startswith('sqlite') and \
+            not os.path.exists(db_url.database):
+        from common.database import setup_dev_env
+        setup_dev_env()
+        logger.warn("There was no DATABASE_URL provided\nfalling back to sqlite3")
+
     yield
     await engine.dispose()
 
