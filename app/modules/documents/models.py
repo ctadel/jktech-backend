@@ -1,7 +1,15 @@
+from enum import Enum
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.common.database import Base
+
+class IngestionStatus(Enum):
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    FAILED = 'failed'
+    COMPLETED = 'completed'
+    TERMINATED = 'terminated'
 
 class Document(Base):
     __tablename__ = "documents"
@@ -13,5 +21,7 @@ class Document(Base):
     version = Column(Integer, default=1)
     uploaded_at = Column(DateTime, default=datetime.now)
     is_private_document = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    ingestion_status = Column(String, default=IngestionStatus.PENDING.name, nullable=False)
+
+    username = Column(Integer, ForeignKey("users.username"))
     user = relationship("User", back_populates="documents")

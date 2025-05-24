@@ -1,89 +1,172 @@
 import random
 from asyncio import sleep
+from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi import HTTPException, UploadFile, status
-from typing import List, Optional
+from fastapi import Depends, UploadFile
+from typing import Optional
 from uuid import uuid4
 
+from app.common.database import get_db
+from app.common.dependencies import get_current_user, get_optional_user
 from app.common.logger import logger
 from app.modules.documents import crud
-from app.modules.documents.models import Document
+from app.modules.documents.models import Document, IngestionStatus
 from app.modules.documents.storage import LocalStorage
-from app.modules.users.models import AccountLevel
+from app.modules.users.models import AccountLevel, User
 from app.common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException
 from app.config import settings
+from app.common.constants import FreeTierLimitations, PaginationConstants
+from app.modules.users.schemas import MessageResponse
 
-#TODO: use based on environment
+#TODO: use S3/Cloud storage for Production
 storage = LocalStorage()
 
-async def upload_document(
-    db: AsyncSession,
-    user,
-    file: UploadFile,
-    title: str,
-    is_private: bool,
-    document_key: Optional[str] = None,
-    is_reupload: bool = False
-):
-    current_account_type = AccountLevel[user.account_type.upper()]
+class BasicService:
+    def __init__(self, db: AsyncSession = Depends(get_db), user: User = Depends(get_optional_user)):
+        self.user = user
+        self.db = db
 
-    user_documents = await crud.get_user_documents(db, user.id)
-    if current_account_type <= AccountLevel.BASIC and len(user_documents) >= 3:
-        raise FreeTierException("Cannot upload more than 3 documents")
+    def _get_limit_offset(page):
+        if page < 1: page = 1
+        offset = (page - 1) * PaginationConstants.DOCUMENTS_PER_PAGE
+        limit = PaginationConstants.DOCUMENTS_PER_PAGE
+        return limit, offset
 
-    if is_reupload:
-        if current_account_type <= AccountLevel.BASIC:
-            raise FreeTierException("Only premium users can reupload (version) documents.")
+    async def list_user_documents(self, username, page: int):
+        limit, offset = self._get_limit_offset(page)
 
-        existing_versions = await crud.get_documents_by_key(db, document_key)
-        if not existing_versions:
-            raise InvalidDocumentException("Document key not found for versioning.")
-        version = max(doc.version for doc in existing_versions) + 1
-    else:
-        document_key = str(uuid4())
-        version = 1
+        documents = select(Document).where(Document.username == username)
 
-    file_path = await storage.upload_file(file.file, f"{document_key}_{version}")
+        if not self.user or self.user.username != username:
+            documents = documents.where(Document.is_private_document == False)
 
-    if settings.is_production_server():
-        ingestion = await process_document_ingestion(file_path)
-        if not ingestion:
-            raise DocumentIngestionException('__\(  )/__')
+        documents = documents.offset(offset).limit(limit)
+        result = await self.db.execute(documents)
+        return result.scalars().all()
 
-    new_doc = await crud.create_document(
-        db=db,
-        user=user,
-        document_key=document_key,
-        title=title,
-        file_path=file_path,
-        version=version,
-        is_private=is_private
-    )
-    return new_doc
+    async def explore_documents(self, page: int):
+        limit, offset = self._get_limit_offset(page)
 
-async def delete_document(db: AsyncSession, document_id: int, current_user):
-    document = await crud.get_document_by_id(db, document_id)
-    if not document or document.user_id != current_user.id:
-        raise InvalidDocumentException(document_id)
-    storage.delete_file(document.file_path)
-    await crud.delete_document(db, document_id)
+        documents = select(Document).where(Document.is_private_document == False) \
+                .offset(offset).limit(limit)
+        result = await self.db.execute(documents)
+        return result.scalars().all()
 
-async def list_public_documents(db: AsyncSession, skip: int = 0, limit: int = 10):
-    return await crud.get_public_documents(db, skip, limit)
+    async def list_trending_documents(self, page: int):
+        limit, offset = self._get_limit_offset(page)
+        documents = select(Document).where(Document.is_private_document == False) \
+                .order_by(desc(Document.stars)).offset(offset).limit(limit)
 
-async def list_user_documents(db: AsyncSession, user_id: int):
-    return await crud.get_user_documents(db, user_id)
+        result = await self.db.execute(documents)
+        return result.scalars().all()
 
-async def get_documents_by_key(db: AsyncSession, key: str):
-    return await crud.get_documents_by_key(db, key)
+    async def list_latest_documents(self, page: int):
+        limit, offset = self._get_limit_offset(page)
+        documents = select(Document).where(Document.is_private_document == False) \
+                .order_by(desc(Document.created_at)).limit(limit).offset(offset)
 
-async def get_public_documents_by_user(db: AsyncSession, username: str):
-    return await crud.get_public_documents_by_username(db, username)
+        result = await self.db.execute(documents)
+        return result.scalars().all()
 
-async def process_document_ingestion(file_path):
-    # Simulating the LLM Blackbox call
-    delay = random.randint(3, 10)
-    await sleep(delay)
-    logger.info(f"The LLM took {delay} seconds to ingest the document")
-    return True
+
+class DocumentService:
+    def __init__(self, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+        self.user = user
+        self.db = db
+
+    async def process_document(
+        self,
+        file: UploadFile,
+        title: str,
+        is_private: bool,
+        document_key: Optional[str] = None,
+        is_reupload: bool = False
+    ):
+        current_account_type = AccountLevel[self.user.account_type.upper()]
+
+        user_documents = await crud.get_user_documents(self.db, self.user.id)
+        if current_account_type <= AccountLevel.BASIC and len(user_documents) >= FreeTierLimitations.MAX_UPLOAD_DOCUMENTS:
+            raise FreeTierException(f"Cannot upload more than {FreeTierLimitations.MAX_UPLOAD_DOCUMENTS} documents")
+
+        if is_reupload:
+            if current_account_type <= AccountLevel.BASIC:
+                raise FreeTierException("Only premium users can reupload (version) documents.")
+
+            existing_versions = await crud.get_documents_by_key(self.db, document_key)
+            if not existing_versions:
+                raise InvalidDocumentException("Document key not found for versioning.")
+            version = max(doc.version for doc in existing_versions) + 1
+        else:
+            document_key = str(uuid4())
+            version = 1
+
+        file_path = await storage.upload_file(file.file, f"{document_key}_{version}")
+
+        if settings.is_production_server():
+            ingestion = await self.process_document_ingestion(file_path)
+            if not ingestion:
+                raise DocumentIngestionException('__\(  )/__')
+
+        new_doc = await crud.create_document(
+            db=self.db,
+            user=self.user,
+            document_key=document_key,
+            title=title,
+            file_path=file_path,
+            version=version,
+            is_private=is_private
+        )
+        return new_doc
+
+    async def delete_document(self, document_key: str):
+        document = await crud.get_document_by_key(self.db, document_key)
+        if not document or document.username != self.user.username:
+            raise InvalidDocumentException(document_key)
+        storage.delete_file(document.file_path)
+        await crud.delete_document(self.db, document_key)
+
+    async def process_document_ingestion(file_path):
+        # Simulating the LLM Blackbox call
+        delay = random.randint(3, 10)
+        await sleep(delay)
+        logger.info(f"The LLM took {delay} seconds to ingest the document")
+        return True
+
+
+class IngestionService:
+    def __init__(self, db: AsyncSession = Depends(get_db)):
+        self.db = db
+
+    async def get_document_status(self, document_id) -> Document:
+        document = self.db.execute(select(Document).where(Document.id  == document_id)) \
+                .scalars().one()
+        if not document:
+            return InvalidDocumentException(document_id)
+
+        if document.ingestion_status in (IngestionStatus.COMPLETED, IngestionStatus.FAILED):
+            return document
+
+        logger.debug("Connect to the LLM Server and get the ingestion process")
+        logger.debug("Update the latest status in the database")
+
+        response_from_llm = random.choice(list(IngestionStatus))
+        document.ingestion_status = response_from_llm.name
+        await self.db.commit()
+        return document
+
+    async def stop_document_ingestion(self, document_id) -> Document:
+        document = self.db.execute(select(Document).where(Document.id  == document_id)) \
+                .scalars().one()
+        if not document:
+            return InvalidDocumentException(document_id)
+
+        if document.ingestion_status in (IngestionStatus.COMPLETED, IngestionStatus.FAILED):
+            return document
+
+        logger.debug("Connect to the LLM Server and stopped the ingestion")
+        logger.debug("Update the status in the database")
+
+        document.ingestion_status = IngestionStatus.TERMINATED.name
+        await self.db.commit()
+        return document

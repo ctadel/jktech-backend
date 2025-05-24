@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.modules.users.routes import AuthRoutes, UserProfileRoutes, SuperAdminRoutes
-from app.modules.documents.routes import router as document_router
+from app.modules.documents.routes import LLMRoutes, UserDocumentsRoutes, PublicDocumentsRoutes
 
 router = APIRouter()
 
@@ -11,4 +11,8 @@ user_router.include_router(UserProfileRoutes('/profile').router)
 user_router.include_router(SuperAdminRoutes('/admin').router)
 router.include_router(user_router, prefix='/users')
 
-router.include_router(document_router, prefix="/documents", tags=["Documents"])
+document_router = APIRouter()
+document_router.include_router(UserDocumentsRoutes('/documents').router)
+document_router.include_router(PublicDocumentsRoutes('/documents').router)
+document_router.include_router(LLMRoutes('/llm').router)
+router.include_router(document_router)

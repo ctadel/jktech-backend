@@ -1,17 +1,20 @@
+from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from functools import partial
 
 from app.common.database import get_db
 from app.common.auth import decode_access_token
-from app.modules.users.models import AccountLevel
+from app.modules.users.models import AccountLevel, User
 from app.modules.users import crud as user_crud
 from app.config import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/api/{settings.API_VERSION}/users/login")
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db)
+        ) -> User:
     payload = decode_access_token(token)
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -21,6 +24,20 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invliad User Token")
 
     return user
+
+async def get_optional_user(
+        token: Optional[str] = Depends(oauth2_scheme),
+        db: Session = Depends(get_db)
+        ) -> Optional[User]:
+    if token is None:
+        return None
+    try:
+        payload = decode_access_token(token)
+        username = payload.get("username")
+        user = user_crud.get_user_by_username(db, username)
+        return user
+    except Exception:
+        return None
 
 def authorization_level_required(required_level: AccountLevel = AccountLevel.BASIC):
     def dependency(user=Depends(get_current_user)):

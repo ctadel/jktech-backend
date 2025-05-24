@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from app.common.dependencies import authorization_level_required
+from app.modules.documents.schemas import PublicDocumentResponse
 from app.modules.users.models import AccountLevel
 from app.modules.users.schemas import TokenResponse, LoginRequest, RegisterRequest, UpdateProfileResponse, UpdateProfileRequest, \
         UpdatePasswordRequest, UpgradeAccountRequest, UserProfile, MessageResponse
@@ -86,7 +87,6 @@ class UserProfileRoutes:
             ) -> MessageResponse:
         await service.deactivate_current_user()
         return {"message": "Account deactivated"}
-
 
 class SuperAdminRoutes:
     def __init__(self, prefix: str = '/admin'):
