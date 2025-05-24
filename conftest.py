@@ -2,6 +2,7 @@ import os
 import pytest_asyncio
 import asyncio
 from httpx import AsyncClient
+from sqlalchemy import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -31,8 +32,9 @@ async def create_test_db():
         await conn.run_sync(Base.metadata.create_all)
     yield
     await engine_test.dispose()
-    if os.path.exists("./test.db"):
-        os.remove("./test.db")
+    db_url = make_url(TEST_DATABASE_URL)
+    if os.path.exists(db_url.database):
+        os.remove(db_url.database)
 
 # Provide a clean session per test
 @pytest_asyncio.fixture
