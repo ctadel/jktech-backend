@@ -36,3 +36,12 @@ class UserProfile(BaseModel):
     account_type:str
     created_at:datetime
 
+    model_config = {
+        "from_attributes": True
+    }
+
+class MessageResponse(BaseModel):
+    message:str
+
+class UpdateProfileResponse(MessageResponse):
+    user:UserProfile
