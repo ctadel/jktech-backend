@@ -3,7 +3,7 @@ from asyncio import sleep
 from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi import Depends, UploadFile
+from fastapi import Depends, Request, UploadFile
 from typing import Optional
 from uuid import uuid4
 
@@ -17,14 +17,15 @@ from app.modules.users.models import AccountLevel, User
 from app.common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException, InvalidUserParameters
 from app.config import settings
 from app.common.constants import FreeTierLimitations, PaginationConstants
-from app.modules.users.schemas import MessageResponse
+from app.common.auth import decode_access_token
 
 #TODO: use S3/Cloud storage for Production
 storage = LocalStorage()
 
 class BasicService:
-    def __init__(self, db: AsyncSession = Depends(get_db)):
+    def __init__(self, request: Request, db: AsyncSession = Depends(get_db)):
         self.db = db
+        self.request = request
 
     @staticmethod
     def _get_limit_offset(page):
@@ -33,6 +34,18 @@ class BasicService:
         limit = PaginationConstants.DOCUMENTS_PER_PAGE
         return limit, offset
 
+
+    async def _get_user_from_request(self) -> User | None:
+        auth = self.request.headers.get("Authorization")
+        if not auth or not auth.startswith("Bearer "):
+            return None
+        token = auth.split(" ")[1]
+        try:
+            payload = decode_access_token(token)
+            username = payload.get("username")
+        except: return
+        return username
+
     async def list_user_documents(self, username: str, page: int):
 
         result = await self.db.execute(select(User).where(User.username == username))
@@ -40,13 +53,12 @@ class BasicService:
         if not target_user:
             raise InvalidUserParameters(f"User not found: {username}")
 
-        documents = select(Document).where(Document.user_id == target_user.id) \
-                .where(Document.is_private_document == False)
-
         limit, offset = self._get_limit_offset(page)
+        active_user = await self._get_user_from_request()
 
-        # if not self.user or self.user.username != username:
-        #     documents = documents.where(Document.is_private_document == False)
+        documents = select(Document).where(Document.user_id == target_user.id)
+        if not active_user or active_user != username:
+            documents = documents.where(Document.is_private_document == False)
 
         documents = documents.offset(offset).limit(limit)
         result = await self.db.execute(documents)
