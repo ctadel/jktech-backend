@@ -1,83 +1,117 @@
 from fastapi import APIRouter, Form, UploadFile, File, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
-from app.common.database import get_db
-from app.common.dependencies import authorization_level_required, get_current_user
-from app.modules.users.models import User, AccountLevel
-from app.modules.documents import service
-from app.modules.documents.schemas import DocumentResponse
+from app.common.dependencies import authorization_level_required
+from app.modules.users.models import AccountLevel
+from app.modules.documents.service import BasicService, DocumentService, IngestionService
+from app.modules.documents.schemas import DocumentIngestionStatusResponse, DocumentResponse, PublicDocumentResponse
+from app.modules.users.schemas import MessageResponse
 
-router = APIRouter()
+class UserDocumentsRoutes:
+    def __init__(self, prefix: str = "/documents"):
+        self.router = APIRouter(
+                prefix=prefix, tags=["Documents"],
+                dependencies=[authorization_level_required(AccountLevel.BASIC)]
+            )
+        self.router.post("")(self.upload_document)
+        self.router.patch("{document_key}")(self.reupload_document)
+        self.router.get("/{document_key}")(self.view_document)
+        self.router.delete("/{document_key}")(self.delete_document)
 
-# @router.put("/upload", response_model=DocumentResponse)
-# async def upload_document(
-#     title: str = Form(...),
-#     is_private: bool = Form(False),
-#     file: UploadFile = File(...),
-#     db: AsyncSession = Depends(get_db),
-#     current_user: User = Depends(authorization_level_required(AccountLevel.BASIC))
-# ):
+    async def upload_document(
+            title: str = Form(...),
+            is_private: bool = Form(False),
+            file: UploadFile = File(...),
+            service = Depends(DocumentService),
+            ) -> DocumentResponse:
+        return await service.process_document(
+            file=file,
+            title=title,
+            is_private=is_private
+        )
 
-#     return await service.upload_document(
-#         db=db,
-#         user=current_user,
-#         file=file,
-#         title=title,
-#         is_private=is_private
-#     )
+    async def reupload_document(
+            document_key:str = Form(...),
+            title: Optional[str] = Form(...),
+            is_private: Optional[bool] = Form(...),
+            file: UploadFile = File(...),
+            service = Depends(DocumentService),
+            ) -> DocumentResponse:
+        return await service.process_document(
+            document_key=document_key,
+            file=file,
+            title=title,
+            is_private=is_private,
+        )
 
+    async def view_document(
+            document_key:str = Form(...),
+            service = Depends(DocumentService),
+            ) -> DocumentResponse:
+        return await service.get_document(document_key)
 
-# @router.patch("/upload", response_model=DocumentResponse)
-# async def reupload_document(
-#     document_key:str = Form(...),
-#     title: Optional[str] = Form(...),
-#     is_private: Optional[bool] = Form(...),
-#     file: UploadFile = File(...),
-#     db: AsyncSession = Depends(get_db),
-#     current_user: User = Depends(authorization_level_required(AccountLevel.PREMIUM))
-# ):
-#     return await service.upload_document(
-#         db=db,
-#         user=current_user,
-#         document_key=document_key,
-#         file=file,
-#         title=title,
-#         is_private=is_private,
-#         is_reupload=True
-#     )
-
-
-# @router.delete("/{document_id}", status_code=204)
-# async def delete_document(
-#     document_id: int,
-#     db: AsyncSession = Depends(get_db),
-#     current_user: User = Depends(get_current_user)
-# ):
-#     await service.delete_document(db, document_id, current_user)
-#     return
-
-
-# @router.get("/public", response_model=List[DocumentResponse])
-# async def list_public_documents(
-#     skip: int = 0,
-#     limit: int = 10,
-#     db: AsyncSession = Depends(get_db)
-# ):
-#     return await service.list_public_documents(db=db, skip=skip, limit=limit)
+    async def delete_document(
+        document_key: str,
+        service = Depends(DocumentService),
+    ) -> MessageResponse:
+        await service.delete_document(document_key)
+        return
 
 
-# @router.get("/user/{username}", response_model=List[DocumentResponse])
-# async def get_public_documents_by_user(
-#     username: str,
-#     db: AsyncSession = Depends(get_db)
-# ):
-#     return await service.get_public_documents_by_user(db, username)
+class PublicDocumentsRoutes:
+    def __init__(self, prefix: str = "/documents"):
+        self.router = APIRouter(
+                prefix=prefix, tags=["Public Documents"],
+            )
+        self.router.get("/user/{username}")(self.list_user_documents)
+        self.router.get("/explore")(self.explore_documents)
+        self.router.get("/explore/trending")(self.list_trending_documents)
+        self.router.get("/explore/latest")(self.list_latest_documents)
 
+    async def list_user_documents(
+            page: int = 1,
+            service = Depends(BasicService)
+            ) -> List[DocumentResponse]:
+        documents = await service.list_user_documents(page)
+        return [PublicDocumentResponse.model_validate(document) for document in documents]
 
-# @router.get("/me", response_model=List[DocumentResponse])
-# async def list_my_documents(
-#     db: AsyncSession = Depends(get_db),
-#     current_user: User = Depends(get_current_user)
-# ):
-#     return await service.list_user_documents(db, current_user.id)
+    async def explore_documents(
+            page: int = 1,
+            service = Depends(BasicService)
+            ) -> List[DocumentResponse]:
+        documents = await service.explore_documents(page)
+        return [PublicDocumentResponse.model_validate(document) for document in documents]
+
+    async def list_trending_documents(
+            page: int = 1,
+            service = Depends(BasicService)
+            ) -> List[DocumentResponse]:
+        documents = await service.explore_documents(page)
+        return [PublicDocumentResponse.model_validate(document) for document in documents]
+
+    async def list_latest_documents(
+            page: int = 1,
+            service = Depends(BasicService)
+            ) -> List[DocumentResponse]:
+        documents = await service.explore_documents(page)
+        return [PublicDocumentResponse.model_validate(document) for document in documents]
+
+class LLMRoutes:
+    def __init__(self, prefix: str = "/llm"):
+        self.router = APIRouter(prefix=prefix, tags=["LLM"])
+        self.router.get('/ingestion_status/{document_id}')(self.get_document_status)
+        self.router.delete('/cancel_ingestion/{document_id}')(self.stop_document_ingestion)
+
+    async def get_document_status(
+            self, document_id:int,
+            service = Depends(IngestionService)
+            ) -> DocumentIngestionStatusResponse:
+        document = service.get_document_status(document_id)
+        return DocumentIngestionStatusResponse.model_validate(document)
+
+    async def stop_document_ingestion(
+            self, document_id:int,
+            service = Depends(IngestionService)
+            ) -> DocumentIngestionStatusResponse:
+        document = service.get_document_status(document_id)
+        return DocumentIngestionStatusResponse.model_validate(document)
