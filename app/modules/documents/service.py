@@ -23,8 +23,7 @@ from app.modules.users.schemas import MessageResponse
 storage = LocalStorage()
 
 class BasicService:
-    def __init__(self, db: AsyncSession = Depends(get_db), user: User = Depends(get_optional_user)):
-        self.user = user
+    def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 
     def _get_limit_offset(page):
@@ -33,13 +32,14 @@ class BasicService:
         limit = PaginationConstants.DOCUMENTS_PER_PAGE
         return limit, offset
 
-    async def list_user_documents(self, username, page: int):
+    async def list_user_documents(self, username: str, page: int):
         limit, offset = self._get_limit_offset(page)
 
-        documents = select(Document).where(Document.username == username)
+        documents = select(Document).where(Document.username == username) \
+                .where(Document.is_private_document == False)
 
-        if not self.user or self.user.username != username:
-            documents = documents.where(Document.is_private_document == False)
+        # if not self.user or self.user.username != username:
+        #     documents = documents.where(Document.is_private_document == False)
 
         documents = documents.offset(offset).limit(limit)
         result = await self.db.execute(documents)
