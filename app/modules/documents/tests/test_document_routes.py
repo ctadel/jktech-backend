@@ -15,7 +15,6 @@ async def auth_header(client):
     })
 
     if response.status_code != 200:
-        print("Login failed:", response.status_code, response.text)
         raise Exception("Login failed during test setup")
 
     token = response.json()["access_token"]
@@ -109,7 +108,6 @@ async def test_delete_document(client):
         files={"file": ("del.txt", file)},
         data={"title": "Delete Test", "is_private": "false"}
     )
-    print(upload.json())
     doc_id = upload.json()["id"]
 
     response = await client.delete(f"/documents/{doc_id}", headers=session_header)

@@ -22,7 +22,6 @@ async def test_login_user(client):
         "username": "newuser",
         "password": "newpass123"
     })
-    print(get_header())
     assert response.status_code == 200
     assert "access_token" in response.json()
     global session_token
@@ -31,7 +30,6 @@ async def test_login_user(client):
 @pytest.mark.asyncio
 async def test_get_user_profile(client):
     response = await client.get("/users/profile", headers=get_header())
-    print(response.json())
     assert response.status_code == 200
     assert response.json()["username"] == "newuser"
     assert response.json()["email"] == "new@example.com"
@@ -57,7 +55,6 @@ async def test_upgrade_account(client):
     response = await client.put("/users/profile/update-account-type", headers=get_header(), json={
         "account_type": "PREMIUM"
     })
-    print(response.json())
     assert response.status_code == 200
     assert "user" in response.json()
 

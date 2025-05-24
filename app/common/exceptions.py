@@ -26,7 +26,7 @@ class FreeTierException(HTTPException):
 
 class InvalidDocumentException(HTTPException):
     def __init__(self, message):
-        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=f"Docuement error: {message}")
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=f"Document error: {message}")
 
 class DocumentMissingException(HTTPException):
     def __init__(self, document_name):

@@ -35,7 +35,7 @@ class BasicService:
         return limit, offset
 
 
-    async def _get_user_from_request(self) -> User | None:
+    async def _get_username_from_request(self) -> str | None:
         auth = self.request.headers.get("Authorization")
         if not auth or not auth.startswith("Bearer "):
             return None
@@ -54,10 +54,10 @@ class BasicService:
             raise InvalidUserParameters(f"User not found: {username}")
 
         limit, offset = self._get_limit_offset(page)
-        active_user = await self._get_user_from_request()
+        active_username = await self._get_username_from_request()
 
         documents = select(Document).where(Document.user_id == target_user.id)
-        if not active_user or active_user != username:
+        if not active_username or active_username != username:
             documents = documents.where(Document.is_private_document == False)
 
         documents = documents.offset(offset).limit(limit)
@@ -158,10 +158,10 @@ class IngestionService:
         self.db = db
 
     async def get_document_status(self, document_id) -> Document:
-        document = self.db.execute(select(Document).where(Document.id  == document_id)) \
-                .scalars().one()
+        document = await self.db.execute(select(Document).where(Document.id  == document_id))
+        document = document.scalars().one_or_none()
         if not document:
-            return InvalidDocumentException(document_id)
+            raise InvalidDocumentException(document_id)
 
         if document.ingestion_status in (IngestionStatus.COMPLETED, IngestionStatus.FAILED):
             return document
@@ -175,10 +175,10 @@ class IngestionService:
         return document
 
     async def stop_document_ingestion(self, document_id) -> Document:
-        document = self.db.execute(select(Document).where(Document.id  == document_id)) \
-                .scalars().one()
+        document = await self.db.execute(select(Document).where(Document.id  == document_id)) \
+                .scalars().one_or_none()
         if not document:
-            return InvalidDocumentException(document_id)
+            raise InvalidDocumentException(document_id)
 
         if document.ingestion_status in (IngestionStatus.COMPLETED, IngestionStatus.FAILED):
             return document

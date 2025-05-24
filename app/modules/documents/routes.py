@@ -57,7 +57,7 @@ class UserDocumentsRoutes:
         service = Depends(DocumentService),
     ) -> MessageResponse:
         await service.delete_document(document_key)
-        return
+        return True
 
 
 class PublicDocumentsRoutes:
@@ -106,12 +106,12 @@ class LLMRoutes:
             self, document_id:int,
             service = Depends(IngestionService)
             ) -> DocumentIngestionStatusResponse:
-        document = service.get_document_status(document_id)
+        document = await service.get_document_status(document_id)
         return DocumentIngestionStatusResponse.model_validate(document)
 
     async def stop_document_ingestion(
             self, document_id:int,
             service = Depends(IngestionService)
             ) -> DocumentIngestionStatusResponse:
-        document = service.get_document_status(document_id)
+        document = await service.get_document_status(document_id)
         return DocumentIngestionStatusResponse.model_validate(document)
