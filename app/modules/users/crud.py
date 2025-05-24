@@ -24,6 +24,10 @@ async def create_user(
     if await get_user_by_username(db, data.username):
         raise UserAlreadyExistsException()
 
+    user_from_email = await db.execute(select(User).where(User.email == data.email))
+    if user_from_email.first():
+        raise InvalidUserParameters("Email already exists")
+
     data = data.model_dump(exclude=['password'])
     user = User(
             **data,
@@ -42,7 +46,7 @@ async def update_user(
 ) -> User:
     user_from_email = await db.execute(select(User).where(User.email == data.email))
     if user_from_email.first():
-        raise InvalidUserParameters(status_code=404, detail="Email already exists")
+        raise InvalidUserParameters("Email already exists")
 
     if data.full_name is not None:
         user.full_name = data.full_name

@@ -11,10 +11,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 load_dotenv()
 
-from config import settings
-from common.database import Base
-from modules.users.models import User
-from modules.documents.models import Document
+from app.config import settings
+from app.common.database import Base
+from app.modules.users.models import User
+from app.modules.documents.models import Document
 
 # Alembic Config
 config = context.config

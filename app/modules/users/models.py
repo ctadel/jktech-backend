@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from enum import IntEnum, auto
 from datetime import datetime
@@ -21,7 +21,7 @@ class AccountLevel(IntEnum):
     """
     BASIC = auto()  #Free users
     PREMIUM = auto()  #Premium users
-    MODERATOR = auto() #Super-user stuff
+    MODERATOR = auto() #Superuser/Admin stuff
 
 class User(Base):
     __tablename__ = "users"
@@ -31,6 +31,7 @@ class User(Base):
     email = Column(String, unique=True, index=False, nullable=True)
     hashed_password = Column(String, nullable=False)
     account_type = Column(String, default=AccountLevel.BASIC.name, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     # Additional fields
     full_name = Column(String, nullable=True)
