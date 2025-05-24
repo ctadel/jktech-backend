@@ -12,9 +12,8 @@ async def get_db():
     async with async_session() as session:
         yield session
 
-def setup_dev_env():
-    # Couldn't find the async Base, therefore I had to convert this to create a db
-    # It's a one time thing
+def initialize_tables():
+    # Couldn't find the async Base, therefore had to convert this to sync
     sync_url = settings.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite")
 
     sync_engine = sync_create_engine(sync_url, future=True, echo=False)

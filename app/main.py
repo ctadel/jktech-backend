@@ -18,8 +18,8 @@ async def lifespan(app: FastAPI):
     db_url = make_url(settings.DATABASE_URL)
     if db_url.drivername.startswith('sqlite') and \
             not os.path.exists(db_url.database):
-        from app.common.database import setup_dev_env
-        setup_dev_env()
+        from app.common.database import initialize_tables
+        initialize_tables()
         logger.warn("There was no DATABASE_URL provided\nfalling back to sqlite3")
 
     yield

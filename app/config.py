@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     ENV: str = 'PROD'
     LOG_DIRECTORY: str = 'logs'
 
-    DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./sqlite.db"
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
