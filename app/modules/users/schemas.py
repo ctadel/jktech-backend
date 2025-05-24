@@ -3,25 +3,25 @@ from datetime import datetime
 
 # Request schemas
 class RegisterRequest(BaseModel):
-    username: str
-    email:str
-    password: str
-    full_name:str
+    username: str = 'ctadel'
+    email:str = 'nep.prajwal@gmail.com'
+    password: str = 'somethingwild'
+    full_name:str = 'Prajwal Dev'
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = 'ctadel'
+    password: str = 'somethingwild'
 
 class UpdateProfileRequest(BaseModel):
-    full_name:str
-    email:str
+    full_name:str = 'Prajwal Dev'
+    email:str = 'nep.prajwal@gmail.com'
 
 class UpdatePasswordRequest(BaseModel):
-    old_password: str
-    new_password: str
+    old_password: str = 'somethingwild'
+    new_password: str = 'evenmorewild'
 
 class UpgradeAccountRequest(BaseModel):
-    account_type: str
+    account_type: str = 'PREMIUM'
 
 # Responses
 class TokenResponse(BaseModel):
@@ -29,19 +29,19 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 class UserProfile(BaseModel):
-    id:int
-    username:str
-    full_name:str
-    email:str
-    account_type:str
-    created_at:datetime
+    id:int = 1
+    username:str = 'ctadel'
+    full_name:str = 'Prajwal Dev'
+    email:str = 'nep.prajwal@gmail.com'
+    account_type:str = 'PREMIUM'
+    created_at:datetime = '2025-11-25 10:42:12'
 
     model_config = {
         "from_attributes": True
     }
 
 class MessageResponse(BaseModel):
-    message:str
+    message:str = "Something just like this"
 
 class UpdateProfileResponse(MessageResponse):
     user:UserProfile
