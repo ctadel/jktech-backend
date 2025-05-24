@@ -14,11 +14,12 @@ class UserDocumentsRoutes:
                 dependencies=[authorization_level_required(AccountLevel.BASIC)]
             )
         self.router.post("")(self.upload_document)
-        self.router.patch("{document_key}")(self.reupload_document)
+        self.router.patch("")(self.reupload_document)
         self.router.get("/{document_key}")(self.view_document)
         self.router.delete("/{document_key}")(self.delete_document)
 
     async def upload_document(
+            self,
             title: str = Form(...),
             is_private: bool = Form(False),
             file: UploadFile = File(...),
@@ -31,6 +32,7 @@ class UserDocumentsRoutes:
         )
 
     async def reupload_document(
+            self,
             document_key:str = Form(...),
             title: Optional[str] = Form(...),
             is_private: Optional[bool] = Form(...),
@@ -45,13 +47,13 @@ class UserDocumentsRoutes:
         )
 
     async def view_document(
-            document_key:str = Form(...),
+            self, document_key:str,
             service = Depends(DocumentService),
             ) -> DocumentResponse:
         return await service.get_document(document_key)
 
     async def delete_document(
-        document_key: str,
+        self, document_key: str,
         service = Depends(DocumentService),
     ) -> MessageResponse:
         await service.delete_document(document_key)
@@ -64,33 +66,31 @@ class PublicDocumentsRoutes:
                 prefix=prefix, tags=["Public Documents"],
             )
         self.router.get("/user/{username}")(self.list_user_documents)
-        self.router.get("/explore")(self.explore_documents)
-        self.router.get("/explore/trending")(self.list_trending_documents)
-        self.router.get("/explore/latest")(self.list_latest_documents)
 
     async def list_user_documents(
+            self, username: str,
             page: int = 1,
             service = Depends(BasicService)
             ) -> List[DocumentResponse]:
-        documents = await service.list_user_documents(page)
+        documents = await service.list_user_documents(username, page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def explore_documents(
-            page: int = 1,
+            self, page: int = 1,
             service = Depends(BasicService)
             ) -> List[DocumentResponse]:
         documents = await service.explore_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def list_trending_documents(
-            page: int = 1,
+            self, page: int = 1,
             service = Depends(BasicService)
             ) -> List[DocumentResponse]:
         documents = await service.explore_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def list_latest_documents(
-            page: int = 1,
+            self, page: int = 1,
             service = Depends(BasicService)
             ) -> List[DocumentResponse]:
         documents = await service.explore_documents(page)
