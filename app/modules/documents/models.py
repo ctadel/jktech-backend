@@ -23,5 +23,5 @@ class Document(Base):
     is_private_document = Column(Boolean, default=False)
     ingestion_status = Column(String, default=IngestionStatus.PENDING.name, nullable=False)
 
-    username = Column(Integer, ForeignKey("users.username"))
+    user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="documents")

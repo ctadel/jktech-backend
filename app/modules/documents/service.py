@@ -14,7 +14,7 @@ from app.modules.documents import crud
 from app.modules.documents.models import Document, IngestionStatus
 from app.modules.documents.storage import LocalStorage
 from app.modules.users.models import AccountLevel, User
-from app.common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException
+from app.common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException, InvalidUserParameters
 from app.config import settings
 from app.common.constants import FreeTierLimitations, PaginationConstants
 from app.modules.users.schemas import MessageResponse
@@ -26,6 +26,7 @@ class BasicService:
     def __init__(self, db: AsyncSession = Depends(get_db)):
         self.db = db
 
+    @staticmethod
     def _get_limit_offset(page):
         if page < 1: page = 1
         offset = (page - 1) * PaginationConstants.DOCUMENTS_PER_PAGE
@@ -33,10 +34,16 @@ class BasicService:
         return limit, offset
 
     async def list_user_documents(self, username: str, page: int):
-        limit, offset = self._get_limit_offset(page)
 
-        documents = select(Document).where(Document.username == username) \
+        result = await self.db.execute(select(User).where(User.username == username))
+        target_user = result.scalar_one_or_none()
+        if not target_user:
+            raise InvalidUserParameters(f"User not found: {username}")
+
+        documents = select(Document).where(Document.user_id == target_user.id) \
                 .where(Document.is_private_document == False)
+
+        limit, offset = self._get_limit_offset(page)
 
         # if not self.user or self.user.username != username:
         #     documents = documents.where(Document.is_private_document == False)
@@ -121,7 +128,7 @@ class DocumentService:
 
     async def delete_document(self, document_key: str):
         document = await crud.get_document_by_key(self.db, document_key)
-        if not document or document.username != self.user.username:
+        if not document or document.user_id != self.user.id:
             raise InvalidDocumentException(document_key)
         storage.delete_file(document.file_path)
         await crud.delete_document(self.db, document_key)
