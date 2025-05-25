@@ -67,8 +67,8 @@ class PublicDocumentsRoutes:
             )
         self.router.get("/user/{username}")(self.list_user_documents)
         self.router.get("/explore")(self.explore_documents)
-        self.router.get("/explore/trending")(self.list_trending_documents)
-        self.router.get("/explore/latest")(self.list_latest_documents)
+        self.router.get("/explore/trending")(self.trending_documents)
+        self.router.get("/explore/latest")(self.latest_documents)
 
     async def list_user_documents(
             self, username: str,
@@ -82,21 +82,21 @@ class PublicDocumentsRoutes:
             self, page: int = 1,
             service = Depends(BasicService)
             ) -> List[DocumentResponse]:
-        documents = await service.explore_documents(page)
+        documents = await service.list_explore_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
-    async def list_trending_documents(
+    async def trending_documents(
             self, page: int = 1,
             service = Depends(BasicService)
             ) -> List[DocumentResponse]:
-        documents = await service.explore_documents(page)
+        documents = await service.list_trending_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
-    async def list_latest_documents(
+    async def latest_documents(
             self, page: int = 1,
             service = Depends(BasicService)
             ) -> List[DocumentResponse]:
-        documents = await service.explore_documents(page)
+        documents = await service.list_latest_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
 class LLMRoutes:

@@ -14,7 +14,7 @@ router.include_router(user_router, prefix='/users')
 
 document_router = APIRouter()
 document_router.include_router(UserDocumentsRoutes('/documents').router)
-document_router.include_router(PublicDocumentsRoutes('/documents').router)
+document_router.include_router(PublicDocumentsRoutes('/documents/public').router)
 document_router.include_router(LLMRoutes('/llm').router)
 router.include_router(document_router)
 

@@ -64,7 +64,7 @@ class BasicService:
         result = await self.db.execute(documents)
         return result.scalars().all()
 
-    async def explore_documents(self, page: int):
+    async def list_explore_documents(self, page: int):
         limit, offset = self._get_limit_offset(page)
 
         documents = select(Document).where(Document.is_private_document == False) \
