@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.modules.users.routes import AuthRoutes, UserProfileRoutes, SuperAdminRoutes
 from app.modules.documents.routes import LLMRoutes, UserDocumentsRoutes, PublicDocumentsRoutes
+from app.modules.conversations.routes import ConversationRoutes
 
 router = APIRouter()
 
@@ -16,3 +17,5 @@ document_router.include_router(UserDocumentsRoutes('/documents').router)
 document_router.include_router(PublicDocumentsRoutes('/documents').router)
 document_router.include_router(LLMRoutes('/llm').router)
 router.include_router(document_router)
+
+router.include_router(ConversationRoutes().router, prefix='/conversations')

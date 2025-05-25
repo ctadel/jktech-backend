@@ -35,3 +35,8 @@ class DocumentMissingException(HTTPException):
 class DocumentIngestionException(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=f"Document Ingestion Error: {message}")
+
+class InvalidConversationException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Conversation ID")
+
