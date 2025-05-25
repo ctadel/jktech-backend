@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from typing import List, Optional
 
 from app.common.exceptions import UserNotFoundException
@@ -78,3 +78,14 @@ async def get_public_documents_by_username(db: AsyncSession, username: str) -> L
         .where(User.username == username, Document.is_private_document == False)
     )
     return result.scalars().all()
+
+async def add_views(db: AsyncSession, document_id: int) -> None:
+    result = await db.execute(select(Document).where(Document.id == document_id))
+    document = result.scalar_one_or_none()
+
+    if document is None:
+        raise ValueError("Document not found")
+
+    document.views += 1
+    await db.flush()
+    await db.commit()

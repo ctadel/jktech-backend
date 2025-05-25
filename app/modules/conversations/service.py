@@ -6,8 +6,11 @@ from app.common.database import get_db
 from app.common.dependencies import get_current_user
 from app.common.exceptions import InvalidConversationException
 from app.modules.conversations import crud
+from app.modules.conversations.models import Role
 from app.modules.conversations.schemas import ConversationCreateRequest, MessageCreate
 from app.modules.users.models import User
+from app.modules.documents.service import IngestionService
+from app.modules.documents.crud import add_views
 
 class ConversationService:
     def __init__(
@@ -19,6 +22,7 @@ class ConversationService:
         self.user = current_user
 
     async def create_conversation(self, data: ConversationCreateRequest):
+        await add_views(self.db, data.document_id)
         return await crud.create_conversation(self.db, self.user.id, data)
 
     async def list_conversations(self):
@@ -34,7 +38,20 @@ class ConversationService:
         convo = await self.get_conversation(convo_id)
         if not convo:
             raise InvalidConversationException()
-        return await crud.add_message(self.db, convo_id, data)
+        await crud.add_message(self.db, convo_id, data)
+
+        ai_reply = await IngestionService.query_document(
+                document_id=convo.document_id,
+                query=data.content
+            )
+
+        ai_response = MessageCreate(
+                role=Role.LLM,
+                content=ai_reply
+            )
+
+        db_record = await crud.add_message(self.db, convo_id, ai_response)
+        return db_record
 
     async def get_messages(self, convo_id):
         return await crud.get_messages(self.db, convo_id)

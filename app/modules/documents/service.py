@@ -1,4 +1,5 @@
 import random
+from faker import Faker
 from asyncio import sleep
 from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,6 +69,7 @@ class BasicService:
         limit, offset = self._get_limit_offset(page)
 
         documents = select(Document).where(Document.is_private_document == False) \
+                .order_by(desc(Document.views)) \
                 .offset(offset).limit(limit)
         result = await self.db.execute(documents)
         return result.scalars().all()
@@ -75,7 +77,8 @@ class BasicService:
     async def list_trending_documents(self, page: int):
         limit, offset = self._get_limit_offset(page)
         documents = select(Document).where(Document.is_private_document == False) \
-                .order_by(desc(Document.stars)).offset(offset).limit(limit)
+                .order_by(desc(Document.stars)) \
+                .offset(offset).limit(limit)
 
         result = await self.db.execute(documents)
         return result.scalars().all()
@@ -173,6 +176,10 @@ class IngestionService:
         document.ingestion_status = response_from_llm.name
         await self.db.commit()
         return document
+
+    @staticmethod
+    async def query_document(document_id=None, query=None):
+        return Faker().paragraph(random.randrange(1,10))
 
     async def stop_document_ingestion(self, document_id) -> Document:
         document = await self.db.execute(select(Document).where(Document.id  == document_id)) \
