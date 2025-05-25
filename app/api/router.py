@@ -18,4 +18,4 @@ document_router.include_router(PublicDocumentsRoutes('/documents/public').router
 document_router.include_router(LLMRoutes('/llm').router)
 router.include_router(document_router)
 
-router.include_router(ConversationRoutes().router, prefix='/conversations')
+router.include_router(ConversationRoutes().router)
