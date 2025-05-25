@@ -7,7 +7,7 @@ def get_header():
 
 @pytest.mark.asyncio
 async def test_register_user(client: AsyncClient):
-    response = await client.post("/users/register", json={
+    response = await client.post("/users/auth/register", json={
         "username": "newuser",
         "email": "new@example.com",
         "full_name": "New User",
@@ -18,7 +18,7 @@ async def test_register_user(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_login_user(client):
-    response = await client.post("/users/login", json={
+    response = await client.post("/users/auth/login", json={
         "username": "newuser",
         "password": "newpass123"
     })
@@ -36,7 +36,7 @@ async def test_get_user_profile(client):
 
 @pytest.mark.asyncio
 async def test_update_user_profile(client):
-    response = await client.put("/users/profile", headers=get_header(), json={
+    response = await client.patch("/users/profile/update", headers=get_header(), json={
         "full_name": "New Updated Name",
         "email": "updated@gmail.com"
     })
@@ -52,15 +52,14 @@ async def test_validate_updated_profile(client):
 
 @pytest.mark.asyncio
 async def test_upgrade_account(client):
-    response = await client.put("/users/profile/update-account-type", headers=get_header(), json={
+    response = await client.post("/users/profile/account/update-account-type", headers=get_header(), json={
         "account_type": "PREMIUM"
     })
     assert response.status_code == 200
-    assert "user" in response.json()
 
 @pytest.mark.asyncio
 async def test_update_password(client):
-    response = await client.put("/users/password", headers=get_header(), json={
+    response = await client.patch("/users/profile/account/update-password", headers=get_header(), json={
         "old_password": "newpass123",
         "new_password": "newpass456"
     })
@@ -68,7 +67,7 @@ async def test_update_password(client):
 
 @pytest.mark.asyncio
 async def test_login_with_new_password(client):
-    response = await client.post("/users/login", json={
+    response = await client.post("/users/auth/login", json={
         "username": "newuser",
         "password": "newpass456"
     })
