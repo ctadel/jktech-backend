@@ -65,7 +65,7 @@ class UserService:
         return True
 
     async def update_account_type(self, new_account_type: str) -> User:
-        self.user.account_type = new_account_type
+        self.user.account_type = new_account_type.account_type
         await self.db.commit()
         await self.db.refresh(self.user)
         return self.user
