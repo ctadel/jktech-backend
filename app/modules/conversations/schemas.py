@@ -18,7 +18,7 @@ class MessageRead(MessageCreate):
     }
 
 class ConversationCreateRequest(BaseModel):
-    document_id: UUID
+    document_id: int
     title: str | None = None
 
 class ConversationResponse(BaseModel):

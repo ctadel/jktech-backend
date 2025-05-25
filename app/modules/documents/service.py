@@ -83,7 +83,7 @@ class BasicService:
     async def list_latest_documents(self, page: int):
         limit, offset = self._get_limit_offset(page)
         documents = select(Document).where(Document.is_private_document == False) \
-                .order_by(desc(Document.created_at)).limit(limit).offset(offset)
+                .order_by(desc(Document.uploaded_at)).limit(limit).offset(offset)
 
         result = await self.db.execute(documents)
         return result.scalars().all()

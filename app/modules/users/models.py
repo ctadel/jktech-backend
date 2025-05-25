@@ -33,10 +33,6 @@ class User(Base):
     account_type = Column(String, default=AccountLevel.BASIC.name, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
-    # Document Activity
-    stars = Column(Integer, default=0)
-    views = Column(Integer, default=0)
-
     # Additional fields
     full_name = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.now)

@@ -23,6 +23,8 @@ class PublicDocumentResponse(BaseModel):
     version: int = 2
     uploaded_at: datetime = datetime.now()
     user_id: int = 1
+    stars: int = 0
+    views: int = 0
 
     model_config = {
         "from_attributes": True

@@ -21,6 +21,11 @@ class Document(Base):
     version = Column(Integer, default=1)
     uploaded_at = Column(DateTime, default=datetime.now)
     is_private_document = Column(Boolean, default=False)
+
+    # Document Activity
+    stars = Column(Integer, default=0)
+    views = Column(Integer, default=0)
+
     ingestion_status = Column(String, default=IngestionStatus.PENDING.name, nullable=False)
 
     user_id = Column(Integer, ForeignKey("users.id"))

@@ -74,7 +74,7 @@ class PublicDocumentsRoutes:
             self, username: str,
             page: int = 1,
             service = Depends(BasicService)
-            ) -> List[DocumentResponse]:
+            ) -> List[PublicDocumentResponse]:
         documents = await service.list_user_documents(username, page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
@@ -88,14 +88,14 @@ class PublicDocumentsRoutes:
     async def trending_documents(
             self, page: int = 1,
             service = Depends(BasicService)
-            ) -> List[DocumentResponse]:
+            ) -> List[PublicDocumentResponse]:
         documents = await service.list_trending_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def latest_documents(
             self, page: int = 1,
             service = Depends(BasicService)
-            ) -> List[DocumentResponse]:
+            ) -> List[PublicDocumentResponse]:
         documents = await service.list_latest_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
