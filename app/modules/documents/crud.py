@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete
 from typing import List, Optional
 
 from app.common.exceptions import UserNotFoundException
@@ -29,12 +29,12 @@ async def create_document(
 
 
 async def get_document_by_key(db: AsyncSession, doc_key: str) -> Optional[Document]:
-    result = await db.execute(select(Document).where(Document.key == doc_key))
+    result = await db.execute(select(Document).where(Document.document_key == doc_key))
     return result.scalars().first()
 
 
 async def delete_document(db: AsyncSession, doc_key: str) -> None:
-    await db.execute(delete(Document).where(Document.key == doc_key))
+    await db.execute(delete(Document).where(Document.document_key == doc_key))
     await db.commit()
 
 

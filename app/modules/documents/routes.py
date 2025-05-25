@@ -57,7 +57,7 @@ class UserDocumentsRoutes:
         service = Depends(DocumentService),
     ) -> MessageResponse:
         await service.delete_document(document_key)
-        return True
+        return {'message': 'Document successfully deleted'}
 
 
 class PublicDocumentsRoutes:

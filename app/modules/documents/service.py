@@ -111,7 +111,7 @@ class DocumentService:
         if current_account_type <= AccountLevel.BASIC and len(user_documents) >= FreeTierLimitations.MAX_UPLOAD_DOCUMENTS:
             raise FreeTierException(f"Cannot upload more than {FreeTierLimitations.MAX_UPLOAD_DOCUMENTS} documents")
 
-        if is_reupload:
+        if is_reupload or document_key:
             if current_account_type <= AccountLevel.BASIC:
                 raise FreeTierException("Only premium users can reupload (version) documents.")
 
@@ -140,7 +140,7 @@ class DocumentService:
         document = await crud.get_document_by_key(self.db, document_key)
         if not document or document.user_id != self.user.id:
             raise InvalidDocumentException(document_key)
-        storage.delete_file(document.file_path)
+        await storage.delete_file(document.file_path)
         await crud.delete_document(self.db, document_key)
 
     async def process_document_ingestion(self, file_path):
