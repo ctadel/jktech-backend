@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Enum, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Enum, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -19,6 +19,7 @@ class Conversation(Base):
     document_id = Column(Integer, ForeignKey("documents.id"))
     title = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
+    is_archived = Column(Boolean, default=False)
 
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
 

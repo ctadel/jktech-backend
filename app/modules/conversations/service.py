@@ -57,12 +57,14 @@ class ConversationService:
         return await crud.get_messages(self.db, convo_id)
 
     async def archive_conversation(self, convo_id: UUID):
+        convo_id = UUID(convo_id.lstrip('$'))
         convo = await crud.archive_conversation(self.db, convo_id, self.user.id)
         if not convo:
             raise InvalidConversationException()
         return convo
 
     async def delete_conversation(self, convo_id: UUID):
+        convo_id = UUID(convo_id.lstrip('$'))
         convo = await crud.delete_conversation(self.db, convo_id, self.user.id)
         if not convo:
             raise InvalidConversationException()

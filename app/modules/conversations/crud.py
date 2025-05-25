@@ -21,10 +21,12 @@ async def get_user_conversations(db: AsyncSession, user_id: UUID):
     return result.scalars().all()
 
 async def get_conversation_by_id(db: AsyncSession, convo_id: UUID) -> Conversation | None:
+    convo_id = UUID(convo_id.lstrip('$'))
     result = await db.execute(select(Conversation).where(Conversation.id == convo_id))
     return result.scalars().first()
 
 async def add_message(db: AsyncSession, convo_id: UUID, data: MessageCreate) -> Message:
+    convo_id = UUID(convo_id.lstrip('$'))
     msg = Message(conversation_id=convo_id, role=data.role, content=data.content)
     db.add(msg)
     await db.commit()
@@ -32,6 +34,7 @@ async def add_message(db: AsyncSession, convo_id: UUID, data: MessageCreate) -> 
     return msg
 
 async def get_messages(db: AsyncSession, convo_id: UUID) -> list[Message]:
+    convo_id = UUID(convo_id.lstrip('$'))
     result = await db.execute(select(Message).where(Message.conversation_id == convo_id).order_by(Message.created_at))
     return result.scalars().all()
 
