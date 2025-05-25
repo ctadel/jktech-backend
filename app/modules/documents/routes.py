@@ -81,7 +81,7 @@ class PublicDocumentsRoutes:
     async def explore_documents(
             self, page: int = 1,
             service = Depends(BasicService)
-            ) -> List[DocumentResponse]:
+            ) -> List[PublicDocumentResponse]:
         documents = await service.list_explore_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 

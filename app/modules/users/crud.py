@@ -22,11 +22,11 @@ async def create_user(
     hashed_password: str,
 ) -> User:
     if await get_user_by_username(db, data.username):
-        raise UserAlreadyExistsException()
+        raise UserAlreadyExistsException(username=data.username)
 
     user_from_email = await db.execute(select(User).where(User.email == data.email))
     if user_from_email.first():
-        raise InvalidUserParameters("Email already exists")
+        raise UserAlreadyExistsException(email=data.email)
 
     data = data.model_dump(exclude=['password'])
     user = User(

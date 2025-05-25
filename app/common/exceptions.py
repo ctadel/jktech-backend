@@ -1,8 +1,13 @@
 from fastapi import HTTPException, status
 
 class UserAlreadyExistsException(HTTPException):
-    def __init__(self):
-        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
+    def __init__(self, username=None, email=None):
+        message = 'User already exists'
+        if email:
+            message = 'Email is alredy registered'
+        if username:
+            message = f'Username ({username}) is alredy taken'
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
 
 class InvalidUserParameters(HTTPException):
     def __init__(self, parameter):
