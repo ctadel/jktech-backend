@@ -66,6 +66,9 @@ class PublicDocumentsRoutes:
                 prefix=prefix, tags=["Public Documents"],
             )
         self.router.get("/user/{username}")(self.list_user_documents)
+        self.router.get("/explore")(self.explore_documents)
+        self.router.get("/explore/trending")(self.list_trending_documents)
+        self.router.get("/explore/latest")(self.list_latest_documents)
 
     async def list_user_documents(
             self, username: str,
