@@ -125,11 +125,6 @@ class DocumentService:
 
         file_path = await storage.upload_file(file.file, f"{document_key}_{version}")
 
-        if settings.is_production_server():
-            ingestion = await self.process_document_ingestion(file_path)
-            if not ingestion:
-                raise DocumentIngestionException('__\(  )/__')
-
         new_doc = await crud.create_document(
             db=self.db,
             user=self.user,
@@ -148,7 +143,7 @@ class DocumentService:
         storage.delete_file(document.file_path)
         await crud.delete_document(self.db, document_key)
 
-    async def process_document_ingestion(file_path):
+    async def process_document_ingestion(self, file_path):
         # Simulating the LLM Blackbox call
         delay = random.randint(3, 10)
         await sleep(delay)
