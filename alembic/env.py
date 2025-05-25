@@ -15,6 +15,7 @@ from app.config import settings
 from app.common.database import Base
 from app.modules.users.models import User
 from app.modules.documents.models import Document
+from app.modules.conversations.models import Conversation, Message
 
 # Alembic Config
 config = context.config
