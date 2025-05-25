@@ -1,8 +1,9 @@
-from sqlalchemy.future import select
+from sqlalchemy import update, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models import Conversation, Message
-from schemas import ConversationCreateRequest, MessageCreate
 from uuid import UUID
+
+from app.modules.conversations.models import Conversation, Message
+from app.modules.conversations.schemas import ConversationCreateRequest, MessageCreate
 
 async def create_conversation(
         db: AsyncSession,
@@ -33,3 +34,23 @@ async def add_message(db: AsyncSession, convo_id: UUID, data: MessageCreate) -> 
 async def get_messages(db: AsyncSession, convo_id: UUID) -> list[Message]:
     result = await db.execute(select(Message).where(Message.conversation_id == convo_id).order_by(Message.created_at))
     return result.scalars().all()
+
+
+async def archive_conversation(db: AsyncSession, convo_id: UUID, user_id: UUID):
+    result = await db.execute(
+        update(Conversation)
+        .where(Conversation.id == convo_id, Conversation.user_id == user_id)
+        .values(is_archived=True)
+        .returning(Conversation)
+    )
+    await db.commit()
+    return result.scalar_one_or_none()
+
+async def delete_conversation(db: AsyncSession, convo_id: UUID, user_id: UUID):
+    result = await db.execute(
+        delete(Conversation)
+        .where(Conversation.id == convo_id, Conversation.user_id == user_id)
+        .returning(Conversation)
+    )
+    await db.commit()
+    return result.scalar_one_or_none()

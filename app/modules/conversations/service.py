@@ -1,11 +1,13 @@
 from fastapi import Depends, HTTPException
+from sqlalchemy import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.database import get_db
 from app.common.dependencies import get_current_user
+from app.common.exceptions import InvalidConversationException
 from app.modules.conversations import crud
 from app.modules.conversations.schemas import ConversationCreateRequest, MessageCreate
-from models import User
+from app.modules.users.models import User
 
 class ConversationService:
     def __init__(
@@ -26,13 +28,25 @@ class ConversationService:
         convo = await crud.get_conversation_by_id(self.db, convo_id)
         if convo and convo.user_id == self.user.id:
             return convo
-        return None
+        raise InvalidConversationException()
 
     async def post_message(self, convo_id, data: MessageCreate):
         convo = await self.get_conversation(convo_id)
         if not convo:
-            raise HTTPException(status_code=404, detail="Conversation not found")
+            raise InvalidConversationException()
         return await crud.add_message(self.db, convo_id, data)
 
     async def get_messages(self, convo_id):
         return await crud.get_messages(self.db, convo_id)
+
+    async def archive_conversation(self, convo_id: UUID):
+        convo = await crud.archive_conversation(self.db, convo_id, self.user.id)
+        if not convo:
+            raise InvalidConversationException()
+        return convo
+
+    async def delete_conversation(self, convo_id: UUID):
+        convo = await crud.delete_conversation(self.db, convo_id, self.user.id)
+        if not convo:
+            raise InvalidConversationException()
+        return convo
