@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Form, UploadFile, File, Depends
 from typing import List, Optional
 
-from app.common.endpoints import BASE_ENDPOINT as EP
+from app.common.endpoints import Endpoints as EP
 from app.common.dependencies import authorization_level_required
 from app.modules.users.models import AccountLevel
 from app.modules.documents.service import BasicService, DocumentService, IngestionService

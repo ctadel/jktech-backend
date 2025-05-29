@@ -9,7 +9,7 @@ from app.common.logger import logger
 from app.common.middleware import AccessLogMiddleware
 from app.config import settings
 from app.api.router import router
-from app.common.endpoints import BASE_ENDPOINT as EP
+from app.common.endpoints import Endpoints as EP
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

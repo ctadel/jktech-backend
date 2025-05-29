@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from app.common.endpoints import BASE_ENDPOINT as EP
+from app.common.endpoints import Endpoints as EP
 from app.common.dependencies import authorization_level_required
 from app.modules.users.models import AccountLevel
 from app.modules.users.schemas import TokenResponse, LoginRequest, RegisterRequest, UpdateProfileResponse, UpdateProfileRequest, \
@@ -13,8 +13,8 @@ class AuthRoutes:
     def __init__(self, prefix: str = "/auth"):
         self.router = APIRouter(prefix=prefix, tags=["User Authentication"])
 
-        self.router.post(   EP.Users.Auth.LOGIN                         )(self.register)
-        self.router.post(   EP.Users.Auth.REGISTER                      )(self.login)
+        self.router.post(   EP.Users.Auth.LOGIN                         )(self.login)
+        self.router.post(   EP.Users.Auth.REGISTER                      )(self.register)
 
     async def register(self, data: RegisterRequest, service = Depends(AuthService)) -> TokenResponse:
         user = await service.register_user(data)
