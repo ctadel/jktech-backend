@@ -49,7 +49,7 @@ async def client(db: AsyncSession):
         yield db
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(app=app, base_url=f"http://localhost/api/{settings.API_VERSION}") as ac:
+    async with AsyncClient(app=app, base_url=f"http://localhost") as ac:
         yield ac
 
 # Create a test user
