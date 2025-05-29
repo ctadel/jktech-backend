@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from app.modules.conversations.service import ConversationService
 from app.modules.conversations.schemas import ConversationCreateRequest, MessageCreate, ConversationDetail, \
         MessageRead, ConversationResponse
@@ -7,15 +7,14 @@ from app.modules.conversations.schemas import ConversationCreateRequest, Message
 class ConversationRoutes:
     def __init__(self, prefix: str = "/conversations"):
         self.router = APIRouter(
-                prefix=prefix, tags=["Conversations"]
-                )
+                prefix=prefix, tags=["Conversations"])
 
-        self.router.get("")(self.list_user_conversations)
-        self.router.post("")(self.start_new_conversation)
-        self.router.get("/{convo_id}")(self.get_conversation)
-        self.router.post("/{convo_id}")(self.add_message)
-        self.router.delete("/{convo_id}")(self.delete_conversation)
-        self.router.post("/{convo_id}/archive")(self.archive_conversation)
+        self.router.get(    ''                              )(self.list_user_conversations)
+        self.router.post(   ''                              )(self.start_new_conversation)
+        self.router.get(    '/{convo_id}'                   )(self.get_conversation)
+        self.router.post(   '/{convo_id}'                   )(self.add_message)
+        self.router.delete( '/{convo_id}'                   )(self.delete_conversation)
+        self.router.post(   '/{convo_id}/archive'           )(self.archive_conversation)
 
 
     async def list_user_conversations(
@@ -30,16 +29,6 @@ class ConversationRoutes:
             ) -> ConversationResponse:
         convo = await service.create_conversation(data)
         return ConversationResponse.model_validate(convo)
-
-    async def get_conversation(
-            self, convo_id: str,
-            service = Depends(ConversationService)
-            ) -> ConversationDetail:
-        convo = await service.get_conversation(convo_id)
-        if not convo:
-            raise HTTPException(status_code=404, detail="Not found")
-        messages = await service.get_messages(convo_id)
-        return [ConversationDetail.model_validate(message) for message in messages]
 
     async def add_message(
             self, convo_id: str, data: MessageCreate,

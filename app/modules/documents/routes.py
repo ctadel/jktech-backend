@@ -13,10 +13,10 @@ class UserDocumentsRoutes:
                 prefix=prefix, tags=["Documents"],
                 dependencies=[authorization_level_required(AccountLevel.BASIC)]
             )
-        self.router.post("")(self.upload_document)
-        self.router.patch("")(self.reupload_document)
-        self.router.get("/{document_key}")(self.view_document)
-        self.router.delete("/{document_key}")(self.delete_document)
+        self.router.post(   ''                              )(self.upload_document)
+        self.router.patch(  ''                              )(self.reupload_document)
+        self.router.get(    '/{document_key}'               )(self.view_document)
+        self.router.delete( '/{document_key}'               )(self.delete_document)
 
     async def upload_document(
             self,
@@ -65,10 +65,10 @@ class PublicDocumentsRoutes:
         self.router = APIRouter(
                 prefix=prefix, tags=["Public Documents"],
             )
-        self.router.get("/user/{username}")(self.list_user_documents)
-        self.router.get("/explore")(self.explore_documents)
-        self.router.get("/explore/trending")(self.trending_documents)
-        self.router.get("/explore/latest")(self.latest_documents)
+        self.router.get(    '/user/{username}'              )(self.list_user_documents)
+        self.router.get(    '/explore'                      )(self.explore_documents)
+        self.router.get(    '/explore/trending'             )(self.trending_documents)
+        self.router.get(    '/explore/latest'               )(self.latest_documents)
 
     async def list_user_documents(
             self, username: str,
@@ -102,8 +102,9 @@ class PublicDocumentsRoutes:
 class LLMRoutes:
     def __init__(self, prefix: str = "/llm"):
         self.router = APIRouter(prefix=prefix, tags=["LLM"])
-        self.router.get('/ingestion_status/{document_id}')(self.get_document_status)
-        self.router.delete('/cancel_ingestion/{document_id}')(self.stop_document_ingestion)
+
+        self.router.get(    '/ingestion_status/{document_id}'   )(self.get_document_status)
+        self.router.delete( '/cancel_ingestion/{document_id}'   )(self.stop_document_ingestion)
 
     async def get_document_status(
             self, document_id:int,
