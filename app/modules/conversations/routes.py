@@ -49,12 +49,6 @@ class ConversationRoutes:
         message = await service.post_message(convo_id, data)
         return MessageRead.model_validate(message)
 
-    async def get_conversation(
-            self, convo_id: str,
-            service = Depends(ConversationService)
-            ) -> list[MessageRead]:
-        return await service.get_messages(convo_id)
-
     async def delete_conversation(
             self, convo_id: str,
             service = Depends(ConversationService)):

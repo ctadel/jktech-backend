@@ -57,7 +57,7 @@ class Endpoints:
         DELETE_DOCUMENT = '/{document_key}'
 
         class PublicDocuments:
-            PREFIX = '/document/public'
+            PREFIX = '/documents/public'
 
             LIST_USER_DOCUMENTS = '/user/{username}'
             EXPLORE_DOCUMENTS = '/explore'
@@ -69,7 +69,6 @@ class Endpoints:
 
         GET_DOCUMENT_STATUS = '/ingestion_status/{document_id}'
         STOP_DOCUMENT_INGESTION = '/cancel_ingestion/{document_id}'
-
 
     class Conversations:
         PREFIX = '/conversations'

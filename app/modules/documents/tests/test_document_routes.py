@@ -1,15 +1,17 @@
 import pytest
 import io
 
+from app.common.endpoints import BASE_ENDPOINT as EP, Endpoints
+
 async def auth_header(client):
-    await client.post("/users/auth/register", json={
+    await client.post(EP.Users.Auth.route('REGISTER'), json={
         "username": "ctadel",
         "email": "ctadel@example.com",
         "full_name": "Test User",
         "password": "testpass"
     })
 
-    response = await client.post("/users/auth/login", json={
+    response = await client.post(EP.Users.Auth.route('LOGIN'), json={
         "username": "ctadel",
         "password": "testpass"
     })
@@ -27,8 +29,7 @@ async def test_upload_document(client):
     global session_header
     session_header = await auth_header(client)
     file = io.BytesIO(b"test content")
-    response = await client.post(
-        "/documents",
+    response = await client.post(EP.Documents.route('UPLOAD_DOCUMENT'),
         headers=session_header,
         files={"file": ("test.txt", file)},
         data={"title": "Test Doc", "is_private": "false"}
@@ -39,32 +40,31 @@ async def test_upload_document(client):
 
 @pytest.mark.asyncio
 async def test_list_my_documents(client):
-    response = await client.get("/documents/public/user/ctadel", headers=session_header)
+    response = await client.get(
+            Endpoints.PREFIX + "/documents/public/user/ctadel",
+            headers=session_header)
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 @pytest.mark.asyncio
 async def test_list_public_documents(client):
-    response = await client.get("/documents/public/explore")
+    response = await client.get(Endpoints.PREFIX + "/documents/public/explore")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 @pytest.mark.asyncio
 async def test_reupload_document_with_basic_account(client):
     original = io.BytesIO(b"original")
-    upload = await client.post(
-        "/documents",
+    upload = await client.post(EP.Documents.route('UPLOAD_DOCUMENT'),
         headers=session_header,
         files={"file": ("file.txt", original)},
         data={"title": "v1", "is_private": "false"}
     )
     doc_key = upload.json()["document_key"]
-    print(doc_key)
 
     # Reupload with PATCH
     version2 = io.BytesIO(b"new version")
-    response = await client.patch(
-        "/documents",
+    response = await client.patch(EP.Documents.route('UPLOAD_DOCUMENT'),
         headers=session_header,
         files={"file": ("file.txt", version2)},
         data={"document_key": doc_key, "title": "v2", "is_private": True}
@@ -74,7 +74,7 @@ async def test_reupload_document_with_basic_account(client):
 
 @pytest.mark.asyncio
 async def test_reupload_document(client):
-    response = await client.post("/users/profile/account/update-account-type",
+    response = await client.post(EP.Users.Profile.route('UPDATE_ACCOUNT_TYPE'),
         headers=session_header,
         json={"account_type": "PREMIUM"}
     )
@@ -82,8 +82,7 @@ async def test_reupload_document(client):
         raise Exception("Failed to upgrade to premium")
 
     original = io.BytesIO(b"original")
-    upload = await client.post(
-        "/documents",
+    upload = await client.post(EP.Documents.route('UPLOAD_DOCUMENT'),
         headers=session_header,
         files={"file": ("file.txt", original)},
         data={"title": "v1", "is_private": "false"}
@@ -92,8 +91,7 @@ async def test_reupload_document(client):
 
     # Reupload with PATCH
     version2 = io.BytesIO(b"new version")
-    response = await client.patch(
-        "/documents",
+    response = await client.patch(EP.Documents.route('UPLOAD_DOCUMENT'),
         headers=session_header,
         files={"file": ("file.txt", version2)},
         data={"document_key": doc_key, "title": "v2", "is_private": True}
@@ -104,13 +102,14 @@ async def test_reupload_document(client):
 @pytest.mark.asyncio
 async def test_delete_document(client):
     file = io.BytesIO(b"delete me")
-    upload = await client.post(
-        "/documents",
+    upload = await client.post(EP.Documents.route('UPLOAD_DOCUMENT'),
         headers=session_header,
         files={"file": ("del.txt", file)},
         data={"title": "Delete Test", "is_private": "false"}
     )
     doc_key = upload.json()["document_key"]
 
-    response = await client.delete(f"/documents/{doc_key}", headers=session_header)
+    response = await client.delete(
+            EP.Documents.route('DELETE_DOCUMENT').format(document_key=doc_key),
+            headers=session_header)
     assert response.status_code == 200
