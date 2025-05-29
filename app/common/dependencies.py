@@ -9,7 +9,7 @@ from app.modules.users.models import AccountLevel, User
 from app.modules.users import crud as user_crud
 from app.config import settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/api/{settings.API_VERSION}/users/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/api/{settings.API_VERSION}/users/auth/token")
 
 async def get_current_user(
         token: str = Depends(oauth2_scheme),

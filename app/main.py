@@ -25,16 +25,17 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
 
-app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
-app.include_router(
-        router,
-        prefix='/api/' + settings.API_VERSION
+app = FastAPI(
+        title=settings.PROJECT_NAME,
+        lifespan=lifespan,
+        version=settings.API_VERSION
     )
 
-app.add_middleware(AccessLogMiddleware)
+app.include_router(router,
+        prefix = '/api/' + settings.API_VERSION)
 
-app.add_middleware(
-    CORSMiddleware,
+app.add_middleware(AccessLogMiddleware)
+app.add_middleware(CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],

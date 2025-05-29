@@ -2,9 +2,9 @@ from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "JK Tech QnA"
+    PROJECT_NAME: str = "ctadel Library"
     API_VERSION: str = "v1"
-    ENV: str = 'PROD'
+    ENV: str = 'DEV'
     LOG_DIRECTORY: str = 'logs'
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./sqlite.db"
@@ -24,6 +24,6 @@ class Settings(BaseSettings):
     )
 
     def is_production_server(self):
-        return self.ENV.upper() == 'PROD'
+        return self.ENV.upper() in ['PROD', 'PRODUCTION']
 
 settings = Settings()
