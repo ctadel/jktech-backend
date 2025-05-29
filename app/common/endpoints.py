@@ -2,20 +2,24 @@ from app.config import settings
 
 def create_endpoints(base_class: type, parent_prefix: str = ""):
     obj = base_class()
-    if hasattr(base_class, 'PREFIX'):
-        current_prefix = parent_prefix + obj.PREFIX
-    obj.FULL_ROUTE = current_prefix
+
+    current_prefix = parent_prefix + (obj.PREFIX if hasattr(obj, 'PREFIX') else '')
+    obj.ROUTE = current_prefix
+
+    def route(self, attr_name: str) -> str:
+        return self.ROUTE + getattr(self, attr_name)
+    obj.route = route.__get__(obj)
 
     for attr_name, attr_value in base_class.__dict__.items():
         if isinstance(attr_value, type):
             child_instance = create_endpoints(attr_value, current_prefix)
             setattr(obj, attr_name, child_instance)
+
     return obj
 
 class Endpoints:
     BASE_PREFIX = '/api/'
     PREFIX = BASE_PREFIX + settings.API_VERSION
-
 
     class Users:
         PREFIX = '/users'
