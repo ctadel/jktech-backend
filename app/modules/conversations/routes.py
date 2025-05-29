@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from app.modules.conversations.service import ConversationService
-from app.common.constants import Endpoints as EP
+from app.common.endpoints import BASE_ENDPOINT as EP
 from app.modules.conversations.schemas import ConversationCreateRequest, MessageCreate, ConversationDetail, \
         MessageRead, ConversationResponse
 

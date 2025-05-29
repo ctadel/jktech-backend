@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from app.modules.users.routes import AuthRoutes, UserProfileRoutes, SuperAdminRoutes
 from app.modules.documents.routes import LLMRoutes, UserDocumentsRoutes, PublicDocumentsRoutes
 from app.modules.conversations.routes import ConversationRoutes
-from app.common.constants import Endpoints as EP
+from app.common.endpoints import BASE_ENDPOINT as EP
 
 router = APIRouter()
 
