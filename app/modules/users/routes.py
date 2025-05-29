@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
+from app.common.constants import Endpoints as EP
 from app.common.dependencies import authorization_level_required
-from app.modules.documents.schemas import PublicDocumentResponse
 from app.modules.users.models import AccountLevel
 from app.modules.users.schemas import TokenResponse, LoginRequest, RegisterRequest, UpdateProfileResponse, UpdateProfileRequest, \
         UpdatePasswordRequest, UpgradeAccountRequest, UserProfile, MessageResponse
@@ -11,9 +11,10 @@ from app.modules.users.service import AuthService, BasicService, UserService
 
 class AuthRoutes:
     def __init__(self, prefix: str = "/auth"):
-        self.router = APIRouter(prefix=prefix, tags=["Auth"])
-        self.router.post("/register")(self.register)
-        self.router.post("/login")(self.login)
+        self.router = APIRouter(prefix=prefix, tags=["User Authentication"])
+
+        self.router.post(   EP.Users.Auth.LOGIN                         )(self.register)
+        self.router.post(   EP.Users.Auth.REGISTER                      )(self.login)
 
     async def register(self, data: RegisterRequest, service = Depends(AuthService)) -> TokenResponse:
         user = await service.register_user(data)
@@ -28,15 +29,16 @@ class AuthRoutes:
 
 class UserProfileRoutes:
     def __init__(self, prefix: str = '/profile'):
-        self.router = APIRouter(prefix=prefix, tags=["User"])
-        self.router.get('')(self.get_user_profile)
-        self.router.patch('/update')(self.update_profile)
-        self.router.get('/user/{username}')(self.get_profile)
-        self.router.get("/users")(self.list_users)
-        self.router.patch("/account/update-password")(self.update_password)
-        self.router.post('/account/update-account-type')(self.update_account_type)
-        self.router.post("/account/activate")(self.deactivate_profile)
-        self.router.delete("/account/deactivate")(self.deactivate_profile)
+        self.router = APIRouter(prefix=prefix, tags=["User Profile"])
+
+        self.router.get(    EP.Users.Profile.GET_USER_PROFILE         )(self.get_user_profile)
+        self.router.patch(  EP.Users.Profile.UPDATE_PROFILE           )(self.update_profile)
+        self.router.get(    EP.Users.Profile.GET_PROFILE              )(self.get_profile)
+        self.router.get(    EP.Users.Profile.LIST_USERS               )(self.list_users)
+        self.router.patch(  EP.Users.Profile.UPDATE_PASSWORD          )(self.update_password)
+        self.router.post(   EP.Users.Profile.UPDATE_ACCOUNT_TYPE      )(self.update_account_type)
+        self.router.post(   EP.Users.Profile.ACTIVATE_PROFILE         )(self.activate_profile)
+        self.router.delete( EP.Users.Profile.DEACTIVATE_PROFILE       )(self.deactivate_profile)
 
     async def list_users(
             self, page:int = 1, service: BasicService = Depends(BasicService)
@@ -89,13 +91,14 @@ class UserProfileRoutes:
         return {"message": "Account deactivated"}
 
 class SuperAdminRoutes:
-    def __init__(self, prefix: str = '/admin'):
+    def __init__(self, prefix: str = '/superadmin'):
         self.router = APIRouter(
                 prefix=prefix, tags=["SuperAdmin"],
                 dependencies=[authorization_level_required(AccountLevel.MODERATOR)]
             )
-        self.router.delete("/deactivate/{user_id}")(self.deactivate_user)
-        self.router.delete("/delete/{user_id}")(self.delete_user)
+
+        self.router.delete( EP.Users.SuperAdmin.DEACTIVATE_USER       )(self.deactivate_user)
+        self.router.delete( EP.Users.SuperAdmin.DELETE_USER           )(self.delete_user)
 
     async def deactivate_user(self, user_id:str, service = Depends(UserService)):
         await service.deactivate_user(user_id)

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Form, UploadFile, File, Depends
 from typing import List, Optional
 
+from app.common.constants import Endpoints as EP
 from app.common.dependencies import authorization_level_required
 from app.modules.users.models import AccountLevel
 from app.modules.documents.service import BasicService, DocumentService, IngestionService
@@ -13,10 +14,10 @@ class UserDocumentsRoutes:
                 prefix=prefix, tags=["Documents"],
                 dependencies=[authorization_level_required(AccountLevel.BASIC)]
             )
-        self.router.post("")(self.upload_document)
-        self.router.patch("")(self.reupload_document)
-        self.router.get("/{document_key}")(self.view_document)
-        self.router.delete("/{document_key}")(self.delete_document)
+        self.router.post(   EP.Documents.UPLOAD_DOCUMENT              )(self.upload_document)
+        self.router.patch(  EP.Documents.REUPLOAD_DOCUMENT            )(self.reupload_document)
+        self.router.get(    EP.Documents.VIEW_DOCUMENT                )(self.view_document)
+        self.router.delete( EP.Documents.DELETE_DOCUMENT              )(self.delete_document)
 
     async def upload_document(
             self,
@@ -65,10 +66,12 @@ class PublicDocumentsRoutes:
         self.router = APIRouter(
                 prefix=prefix, tags=["Public Documents"],
             )
-        self.router.get("/user/{username}")(self.list_user_documents)
-        self.router.get("/explore")(self.explore_documents)
-        self.router.get("/explore/trending")(self.trending_documents)
-        self.router.get("/explore/latest")(self.latest_documents)
+        endponints = EP.Documents.PublicDocuments
+
+        self.router.get(    endponints.LIST_USER_DOCUMENTS            )(self.list_user_documents)
+        self.router.get(    endponints.EXPLORE_DOCUMENTS              )(self.explore_documents)
+        self.router.get(    endponints.TRENDING_DOCUMENTS             )(self.trending_documents)
+        self.router.get(    endponints.LATEST_DOCUMENTS               )(self.latest_documents)
 
     async def list_user_documents(
             self, username: str,
@@ -102,8 +105,9 @@ class PublicDocumentsRoutes:
 class LLMRoutes:
     def __init__(self, prefix: str = "/llm"):
         self.router = APIRouter(prefix=prefix, tags=["LLM"])
-        self.router.get('/ingestion_status/{document_id}')(self.get_document_status)
-        self.router.delete('/cancel_ingestion/{document_id}')(self.stop_document_ingestion)
+
+        self.router.get(    EP.LLM.GET_DOCUMENT_STATUS                )(self.get_document_status)
+        self.router.delete( EP.LLM.STOP_DOCUMENT_INGESTION            )(self.stop_document_ingestion)
 
     async def get_document_status(
             self, document_id:int,

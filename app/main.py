@@ -9,6 +9,7 @@ from app.common.logger import logger
 from app.common.middleware import AccessLogMiddleware
 from app.config import settings
 from app.api.router import router
+from app.common.constants import Endpoints as EP
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,11 +26,13 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
 
-app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
-app.include_router(
-        router,
-        prefix='/api/' + settings.API_VERSION
+app = FastAPI(
+        title=settings.PROJECT_NAME,
+        lifespan=lifespan,
+        version=settings.API_VERSION
     )
+
+app.include_router(router, prefix = EP.PREFIX)
 
 app.add_middleware(AccessLogMiddleware)
 
