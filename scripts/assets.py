@@ -1,8 +1,12 @@
+import os
 import random
 from faker import Faker
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
+from app.config import settings
+
+API_BASE_URL = f"{settings.API_URL}/api/{settings.API_VERSION}"
 
 @dataclass
 class User:
