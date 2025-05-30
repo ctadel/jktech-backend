@@ -15,6 +15,9 @@ class Settings(BaseSettings):
 
     CORS_ALLOWED_ORIGINS: str = "*"
 
+    # Required for scripts to run
+    API_URL: str = "http://localhost:8000"
+
     @property
     def CORS_ORIGINS(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ALLOWED_ORIGINS.split(",")]

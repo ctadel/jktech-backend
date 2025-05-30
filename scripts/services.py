@@ -6,13 +6,9 @@ from faker import Faker
 from typing import List
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from app.config import settings
 from app.common.constants import FreeTierLimitations
-from assets import User, Document
+from assets import User, Document, API_BASE_URL
 
-
-
-API_BASE_URL = f"http://localhost:8000/api/{settings.API_VERSION}"
 
 class APIService:
     def __init__(self, base_url: str = API_BASE_URL):
