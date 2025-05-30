@@ -15,7 +15,7 @@ from app.modules.documents import crud
 from app.modules.documents.models import Document, IngestionStatus
 from app.modules.documents.storage import LocalStorage
 from app.modules.users.models import AccountLevel, User
-from app.common.exceptions import DocumentIngestionException, FreeTierException, InvalidDocumentException, InvalidUserParameters
+from app.common.exceptions import DocumentIngestionException, DocumentMissingException, FreeTierException, InvalidDocumentException, InvalidUserParameters
 from app.config import settings
 from app.common.constants import FreeTierLimitations, PaginationConstants
 from app.common.auth import decode_access_token
@@ -97,6 +97,11 @@ class DocumentService:
         self.user = user
         self.db = db
 
+    async def list_user_documents(self):
+        documents = select(Document).where(Document.user_id == self.user.id)
+        result = await self.db.execute(documents)
+        return result.scalars().all()
+
     async def process_document(
         self,
         file: UploadFile,
@@ -135,6 +140,16 @@ class DocumentService:
             is_private=is_private
         )
         return new_doc
+
+    async def get_document(self, document_key: str):
+        document = await crud.get_document_by_key(self.db, document_key)
+        if not document:
+            raise DocumentMissingException(document_key)
+
+        if document.user_id != self.user.id and document.is_private_document:
+            raise InvalidDocumentException(document_key)
+
+        return document
 
     async def delete_document(self, document_key: str):
         document = await crud.get_document_by_key(self.db, document_key)
