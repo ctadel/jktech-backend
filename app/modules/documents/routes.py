@@ -54,13 +54,13 @@ class UserDocumentsRoutes:
 
     async def view_document(
             self, document_key:str,
-            service = Depends(DocumentService),
+            service: DocumentService = Depends(DocumentService),
             ) -> DocumentResponse:
         return await service.get_document(document_key)
 
     async def delete_document(
         self, document_key: str,
-        service = Depends(DocumentService),
+        service: DocumentService = Depends(DocumentService),
     ) -> MessageResponse:
         await service.delete_document(document_key)
         return {'message': 'Document successfully deleted'}
