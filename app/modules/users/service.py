@@ -33,19 +33,6 @@ class AuthService:
         return await crud.create_user(self.db, data, hashed_pw)
 
 
-class BasicService(AuthService):
-    async def get_profile(self, username):
-        return await crud.get_user_by_username(self.db, username)
-
-    async def list_users(self, page):
-        if page < 1: page = 1
-        offset = (page - 1) * PaginationConstants.USERS_PER_PAGE
-        result = await self.db.execute(select(User)
-                       .offset(offset)
-                       .limit(PaginationConstants.USERS_PER_PAGE))
-        return result.scalars().all()
-
-
 class UserService:
     def __init__(self, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
         self.user = user
@@ -74,7 +61,19 @@ class UserService:
         self.user.is_active = False
         await self.db.commit()
 
+
     ### SUPER ADMIN STUFF ###
+    async def list_users(self, page):
+        if page < 1: page = 1
+        offset = (page - 1) * PaginationConstants.USERS_PER_PAGE
+        result = await self.db.execute(select(User)
+                       .offset(offset)
+                       .limit(PaginationConstants.USERS_PER_PAGE))
+        return result.scalars().all()
+
+    async def get_profile(self, username):
+        return await crud.get_user_by_username(self.db, username)
+
     async def deactivate_user_by_user_id(self, user_id: str):
         user = await self.get_user_by_id(user_id)
         user.is_active = False
