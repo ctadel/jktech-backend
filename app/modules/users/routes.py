@@ -25,7 +25,7 @@ class AuthRoutes:
     async def login(self, data: LoginRequest, service = Depends(AuthService)) -> TokenResponse:
         user = await service.authenticate_user(data.username, data.password)
         token = service.generate_token(user)
-        return {"access_token": token}
+        # return {"access_token": token}
 
     async def get_token(
             self, form_data: OAuth2PasswordRequestForm = Depends(),
