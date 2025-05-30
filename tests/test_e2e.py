@@ -28,7 +28,6 @@ async def test_full_e2e_flow(client):
     assert res.status_code == 200
     access_token = res.json()["access_token"]
     assert access_token
-    headers = {"Authorization": f"Bearer {access_token}"}
 
     # 3 upload a document
     file = io.BytesIO(b"test content")
@@ -78,3 +77,9 @@ async def test_full_e2e_flow(client):
     res = await client.get(f"/conversations/{convo_id}", headers=headers)
     assert res.status_code == 200
     assert isinstance(res.json(), list)
+
+    # 9. Delete the conversation
+    res = await client.delete(f"/conversations/{convo_id}", headers=headers)
+    print(res.status_code)
+    print(res.json())
+    assert res.status_code == 200
