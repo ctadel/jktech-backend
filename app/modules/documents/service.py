@@ -97,6 +97,11 @@ class DocumentService:
         self.user = user
         self.db = db
 
+    async def list_user_documents(self):
+        documents = select(Document).where(Document.user_id == self.user.id)
+        result = await self.db.execute(documents)
+        return result.scalars().all()
+
     async def process_document(
         self,
         file: UploadFile,
