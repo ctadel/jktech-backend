@@ -69,8 +69,8 @@ async def test_reupload_document_with_basic_account(client):
         files={"file": ("file.txt", version2)},
         data={"document_key": doc_key, "title": "v2", "is_private": True}
     )
-    assert response.status_code == 401
-    assert 'Tier Limit Reached' in response.json()['detail']
+    assert response.status_code == 403
+    assert 'Tier Limit' in response.json()['detail']
 
 @pytest.mark.asyncio
 async def test_reupload_document(client):
