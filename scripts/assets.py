@@ -75,7 +75,7 @@ class Document:
         Path(path).write_text(content)
 
         return cls(
-            title = fake.sentence(nb_words=random.randrange(1,4)),
+            title = fake.sentence(nb_words=random.randrange(1,4)).rstrip('.'),
             is_private = random.choice([True, False, False]),
             local_path = path,
         )

@@ -13,10 +13,16 @@ class UserDocumentsRoutes:
                 prefix=prefix, tags=["Documents"],
                 dependencies=[authorization_level_required(AccountLevel.BASIC)]
             )
+        self.router.get(    ''                              )(self.get_user_documents)
         self.router.post(   ''                              )(self.upload_document)
         self.router.patch(  ''                              )(self.reupload_document)
         self.router.get(    '/{document_key}'               )(self.view_document)
         self.router.delete( '/{document_key}'               )(self.delete_document)
+
+    async def get_user_documents(
+            self, service = Depends(DocumentService),
+            ) -> List[DocumentResponse]:
+        return await service.list_user_documents()
 
     async def upload_document(
             self,
