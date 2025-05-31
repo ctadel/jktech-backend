@@ -31,7 +31,11 @@ async def create_document(
 
 
 async def get_document_by_key(db: AsyncSession, doc_key: str) -> Optional[Document]:
-    result = await db.execute(select(Document).where(Document.document_key == doc_key))
+    result = await db.execute(
+        select(Document)
+        .where(Document.document_key == doc_key)
+        .order_by(desc(Document.version))
+    )
     return result.scalars().first()
 
 
@@ -60,37 +64,10 @@ async def get_user_documents(db: AsyncSession, user_id: int) -> List[Document]:
     result = await db.execute(stmt)
     return result.fetchall()
 
-async def get_public_documents(db: AsyncSession, skip: int = 0, limit: int = 10) -> List[Document]:
-    result = await db.execute(
-        select(Document)
-        .where(Document.is_private_document == False)
-        .offset(skip)
-        .limit(limit)
-        .order_by(Document.uploaded_at.desc())
-    )
-    return result.scalars().all()
-
 
 async def get_documents_by_key(db: AsyncSession, key: str) -> List[Document]:
     result = await db.execute(
         select(Document).where(Document.document_key == key)
-    )
-    return result.scalars().all()
-
-
-async def get_public_documents_by_username(db: AsyncSession, username: str) -> List[Document]:
-    # To prevent circular import at module level
-    from modules.users.models import User
-    from modules.users.crud import get_user_by_username
-
-    user = await get_user_by_username(db, username)
-    if not user:
-        raise UserNotFoundException()
-
-    result = await db.execute(
-        select(Document)
-        .join(User)
-        .where(User.username == username, Document.is_private_document == False)
     )
     return result.scalars().all()
 
@@ -162,3 +139,83 @@ async def get_document_stats(db: AsyncSession, user_id: int):
         total_revisions = total_revisions,
         private_documents = private_documents
     )
+
+async def fetch_explore_documents(db: AsyncSession, limit: int, offset: int):
+    subquery = (
+        select(
+            Document.document_key,
+            func.max(Document.version).label("latest_version")
+        )
+        .where(Document.is_private_document == False)
+        .group_by(Document.document_key)
+        .subquery()
+    )
+
+    latest_docs = (
+        select(Document)
+        .join(
+            subquery,
+            (Document.document_key == subquery.c.document_key) &
+            (Document.version == subquery.c.latest_version)
+        )
+        .order_by(desc(Document.views))
+        .offset(offset)
+        .limit(limit)
+    )
+
+    result = await db.execute(latest_docs)
+    return result.scalars().all()
+
+
+async def fetch_trending_documents(db: AsyncSession, limit: int, offset: int):
+    subquery = (
+        select(
+            Document.document_key,
+            func.max(Document.version).label("latest_version")
+        )
+        .where(Document.is_private_document == False)
+        .group_by(Document.document_key)
+        .subquery()
+    )
+
+    documents_query = (
+        select(Document)
+        .join(
+            subquery,
+            (Document.document_key == subquery.c.document_key) &
+            (Document.version == subquery.c.latest_version)
+        )
+        .order_by(desc(Document.stars))
+        .offset(offset)
+        .limit(limit)
+    )
+
+    result = await db.execute(documents_query)
+    return result.scalars().all()
+
+
+async def fetch_latest_documents(db: AsyncSession, limit: int, offset: int):
+    subquery = (
+        select(
+            Document.document_key,
+            func.max(Document.version).label("latest_version")
+        )
+        .where(Document.is_private_document == False)
+        .group_by(Document.document_key)
+        .subquery()
+    )
+
+    documents_query = (
+        select(Document)
+        .join(
+            subquery,
+            (Document.document_key == subquery.c.document_key) &
+            (Document.version == subquery.c.latest_version)
+        )
+        .order_by(desc(Document.uploaded_at))
+        .limit(limit)
+        .offset(offset)
+    )
+
+    result = await db.execute(documents_query)
+    return result.scalars().all()

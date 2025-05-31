@@ -36,60 +36,17 @@ class BasicService:
         return limit, offset
 
 
-    async def _get_username_from_request(self) -> str | None:
-        auth = self.request.headers.get("Authorization")
-        if not auth or not auth.startswith("Bearer "):
-            return None
-        token = auth.split(" ")[1]
-        try:
-            payload = decode_access_token(token)
-            username = payload.get("username")
-        except: return
-        return username
-
-    async def list_user_documents(self, username: str, page: int):
-
-        result = await self.db.execute(select(User).where(User.username == username))
-        target_user = result.scalar_one_or_none()
-        if not target_user:
-            raise InvalidUserParameters(f"User not found: {username}")
-
-        limit, offset = self._get_limit_offset(page)
-        active_username = await self._get_username_from_request()
-
-        documents = select(Document).where(Document.user_id == target_user.id)
-        if not active_username or active_username != username:
-            documents = documents.where(Document.is_private_document == False)
-
-        documents = documents.offset(offset).limit(limit)
-        result = await self.db.execute(documents)
-        return result.scalars().all()
-
     async def list_explore_documents(self, page: int):
         limit, offset = self._get_limit_offset(page)
-
-        documents = select(Document).where(Document.is_private_document == False) \
-                .order_by(desc(Document.views)) \
-                .offset(offset).limit(limit)
-        result = await self.db.execute(documents)
-        return result.scalars().all()
+        return await crud.fetch_explore_documents(self.db, limit, offset)
 
     async def list_trending_documents(self, page: int):
         limit, offset = self._get_limit_offset(page)
-        documents = select(Document).where(Document.is_private_document == False) \
-                .order_by(desc(Document.stars)) \
-                .offset(offset).limit(limit)
-
-        result = await self.db.execute(documents)
-        return result.scalars().all()
+        return await crud.fetch_trending_documents(self.db, limit, offset)
 
     async def list_latest_documents(self, page: int):
         limit, offset = self._get_limit_offset(page)
-        documents = select(Document).where(Document.is_private_document == False) \
-                .order_by(desc(Document.uploaded_at)).limit(limit).offset(offset)
-
-        result = await self.db.execute(documents)
-        return result.scalars().all()
+        return await crud.fetch_latest_documents(self.db, limit, offset)
 
 
 class DocumentService:
