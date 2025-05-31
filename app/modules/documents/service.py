@@ -98,9 +98,12 @@ class DocumentService:
         self.db = db
 
     async def list_user_documents(self):
-        documents = select(Document).where(Document.user_id == self.user.id)
-        result = await self.db.execute(documents)
-        return result.scalars().all()
+        documents = await crud.get_user_documents(self.db, self.user.id)
+        return documents
+
+    async def get_document_stats(self):
+        response = await crud.get_document_stats(self.db, self.user.id)
+        return response
 
     async def process_document(
         self,
@@ -112,14 +115,15 @@ class DocumentService:
     ):
         current_account_type = AccountLevel[self.user.account_type.upper()]
 
-        user_documents = await crud.get_user_documents(self.db, self.user.id)
-        if current_account_type <= AccountLevel.BASIC and len(user_documents) >= FreeTierLimitations.MAX_UPLOAD_DOCUMENTS:
-            raise FreeTierException(f"Cannot upload more than {FreeTierLimitations.MAX_UPLOAD_DOCUMENTS} documents")
-
-        if is_reupload or document_key:
-            if current_account_type <= AccountLevel.BASIC:
+        if current_account_type <= AccountLevel.BASIC:
+            if is_reupload or document_key:
                 raise FreeTierException("Only premium users can reupload (version) documents.")
 
+            stats = await crud.get_document_stats(self.db, self.user.id)
+            if  stats.get('total_documents') >= FreeTierLimitations.MAX_UPLOAD_DOCUMENTS:
+                raise FreeTierException(f"Cannot upload more than {FreeTierLimitations.MAX_UPLOAD_DOCUMENTS} documents")
+
+        if is_reupload or document_key:
             existing_versions = await crud.get_documents_by_key(self.db, document_key)
             if not existing_versions:
                 raise InvalidDocumentException("Document key not found for versioning.")

@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends
+from uuid import UUID
 from app.modules.conversations.service import ConversationService
 from app.modules.conversations.schemas import ConversationCreateRequest, MessageCreate, ConversationDetail, \
         MessageRead, ConversationResponse
@@ -31,24 +32,24 @@ class ConversationRoutes:
         return ConversationResponse.model_validate(convo)
 
     async def add_message(
-            self, convo_id: str, data: MessageCreate,
+            self, convo_id: UUID, data: MessageCreate,
             service = Depends(ConversationService)
             ) -> MessageRead:
         message = await service.post_message(convo_id, data)
         return MessageRead.model_validate(message)
 
     async def get_conversation(
-            self, convo_id: str,
+            self, convo_id: UUID,
             service = Depends(ConversationService)
             ) -> list[MessageRead]:
         return await service.get_messages(convo_id)
 
     async def delete_conversation(
-            self, convo_id: str,
-            service = Depends(ConversationService)):
+            self, convo_id: UUID,
+            service: ConversationService = Depends(ConversationService)):
         return await service.delete_conversation(convo_id)
 
     async def archive_conversation(
-            self, convo_id: str,
+            self, convo_id: UUID,
             service = Depends(ConversationService)):
         return await service.archive_conversation(convo_id)
