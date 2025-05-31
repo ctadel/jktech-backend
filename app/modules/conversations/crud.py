@@ -1,3 +1,4 @@
+from operator import and_
 from sqlalchemy import update, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
@@ -17,7 +18,12 @@ async def create_conversation(
     return convo
 
 async def get_user_conversations(db: AsyncSession, user_id):
-    result = await db.execute(select(Conversation).where(Conversation.user_id == user_id))
+    result = await db.execute(select(Conversation).where(
+            and_(
+                Conversation.user_id == user_id,
+                Conversation.is_archived == False
+             )
+        ))
     return result.scalars().all()
 
 async def get_conversation_by_id(db: AsyncSession, convo_id) -> Conversation | None:
