@@ -4,7 +4,7 @@ from typing import List, Optional
 from app.common.dependencies import authorization_level_required
 from app.modules.users.models import AccountLevel
 from app.modules.documents.service import BasicService, DocumentService, IngestionService
-from app.modules.documents.schemas import DocumentIngestionStatusResponse, DocumentResponse, PublicDocumentResponse
+from app.modules.documents.schemas import DocumentStatsResponse, DocumentIngestionStatusResponse, DocumentResponse, PublicDocumentResponse
 from app.modules.users.schemas import MessageResponse
 
 class UserDocumentsRoutes:
@@ -16,13 +16,19 @@ class UserDocumentsRoutes:
         self.router.get(    ''                              )(self.get_user_documents)
         self.router.post(   ''                              )(self.upload_document)
         self.router.patch(  ''                              )(self.reupload_document)
+        self.router.get(    '/stats'                        )(self.get_document_stats)
         self.router.get(    '/{document_key}'               )(self.view_document)
         self.router.delete( '/{document_key}'               )(self.delete_document)
 
     async def get_user_documents(
-            self, service = Depends(DocumentService),
+            self, service: DocumentService = Depends(DocumentService),
             ) -> List[DocumentResponse]:
         return await service.list_user_documents()
+
+    async def get_document_stats(
+            self, service: DocumentService = Depends(DocumentService),
+            ) -> DocumentStatsResponse:
+        return await service.get_document_stats()
 
     async def upload_document(
             self,
