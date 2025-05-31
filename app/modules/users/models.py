@@ -4,7 +4,6 @@ from enum import IntEnum, auto
 from datetime import datetime
 
 from app.common.database import Base
-from app.modules.documents.models import Document
 
 class AccountLevel(IntEnum):
     """
@@ -36,5 +35,6 @@ class User(Base):
     # Additional fields
     full_name = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
+    stars = relationship("DocumentStar", back_populates="user", cascade="all, delete-orphan")
 
-    documents = relationship(Document, back_populates="user", cascade="all, delete-orphan")
+    documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")

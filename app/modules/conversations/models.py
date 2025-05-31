@@ -19,6 +19,7 @@ class Conversation(Base):
     document_id = Column(Integer, ForeignKey("documents.id"))
     title = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now)
     is_archived = Column(Boolean, default=False)
 
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")

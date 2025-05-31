@@ -27,6 +27,7 @@ class ConversationResponse(BaseModel):
     created_at: datetime
     user_id: int
     document_id: int
+    document_owner_id: int
 
     model_config = {
         "from_attributes": True
