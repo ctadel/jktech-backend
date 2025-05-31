@@ -56,7 +56,6 @@ async def get_user_documents(db: AsyncSession, user_id: int) -> List[Document]:
         select(subquery)
         .where(subquery.c.rn == 1)
     )
-    return stmt
 
     result = await db.execute(stmt)
     return result.fetchall()
