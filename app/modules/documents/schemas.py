@@ -14,7 +14,10 @@ class DocumentResponse(BaseModel):
     version: int = 1
     uploaded_at: datetime = datetime.now()
     is_private_document: bool = False
+    ingestion_status: str = 'completed'
     user_id: int = 1
+    stars: int = 0
+    views: int = 0
 
 class PublicDocumentResponse(BaseModel):
     id: int = 1

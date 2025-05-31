@@ -92,21 +92,21 @@ class PublicDocumentsRoutes:
 
     async def explore_documents(
             self, page: int = 1,
-            service = Depends(BasicService)
+            service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
         documents = await service.list_explore_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def trending_documents(
             self, page: int = 1,
-            service = Depends(BasicService)
+            service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
         documents = await service.list_trending_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def latest_documents(
             self, page: int = 1,
-            service = Depends(BasicService)
+            service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
         documents = await service.list_latest_documents(page)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
