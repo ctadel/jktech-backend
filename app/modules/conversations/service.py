@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException
-from sqlalchemy import UUID
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.database import get_db
@@ -56,13 +56,13 @@ class ConversationService:
     async def get_messages(self, convo_id):
         return await crud.get_messages(self.db, convo_id)
 
-    async def archive_conversation(self, convo_id: UUID):
+    async def archive_conversation(self, convo_id):
         convo = await crud.archive_conversation(self.db, convo_id, self.user.id)
         if not convo:
             raise InvalidConversationException()
         return convo
 
-    async def delete_conversation(self, convo_id: UUID):
+    async def delete_conversation(self, convo_id):
         convo = await crud.delete_conversation(self.db, convo_id, self.user.id)
         if not convo:
             raise InvalidConversationException()

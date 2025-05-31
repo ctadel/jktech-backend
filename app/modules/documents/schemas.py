@@ -30,6 +30,14 @@ class PublicDocumentResponse(BaseModel):
         "from_attributes": True
     }
 
+class DocumentStatsResponse(BaseModel):
+    user_id: int = 1
+    total_documents: int = 5
+    total_views: int = 5
+    total_stars: int = 5
+    total_revisions: int = 5
+    private_documents: int = 1
+
 class DocumentIngestionStatusResponse(BaseModel):
     document_id: int = 1
     document_key: str = '64aaf05e-1fd3-423b-a564-a3c0200408fd'

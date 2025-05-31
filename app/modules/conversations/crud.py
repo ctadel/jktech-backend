@@ -21,12 +21,10 @@ async def get_user_conversations(db: AsyncSession, user_id):
     return result.scalars().all()
 
 async def get_conversation_by_id(db: AsyncSession, convo_id) -> Conversation | None:
-    convo_id = UUID(convo_id.lstrip('$'))
     result = await db.execute(select(Conversation).where(Conversation.id == convo_id))
     return result.scalars().first()
 
 async def add_message(db: AsyncSession, convo_id, data: MessageCreate) -> Message:
-    convo_id = UUID(convo_id.lstrip('$'))
     msg = Message(conversation_id=convo_id, role=data.role, content=data.content)
     db.add(msg)
     await db.commit()
@@ -34,13 +32,11 @@ async def add_message(db: AsyncSession, convo_id, data: MessageCreate) -> Messag
     return msg
 
 async def get_messages(db: AsyncSession, convo_id) -> list[Message]:
-    convo_id = UUID(convo_id.lstrip('$'))
     result = await db.execute(select(Message).where(Message.conversation_id == convo_id).order_by(Message.created_at))
     return result.scalars().all()
 
 
-async def archive_conversation(db: AsyncSession, convo_id, user_id: UUID):
-    convo_id = UUID(convo_id.lstrip('$'))
+async def archive_conversation(db: AsyncSession, convo_id, user_id: int):
     result = await db.execute(
         update(Conversation)
         .where(Conversation.id == convo_id, Conversation.user_id == user_id)
@@ -50,8 +46,7 @@ async def archive_conversation(db: AsyncSession, convo_id, user_id: UUID):
     await db.commit()
     return result.scalar_one_or_none()
 
-async def delete_conversation(db: AsyncSession, convo_id, user_id: UUID):
-    convo_id = UUID(convo_id.lstrip('$'))
+async def delete_conversation(db: AsyncSession, convo_id, user_id: int):
     result = await db.execute(
         delete(Conversation)
         .where(Conversation.id == convo_id, Conversation.user_id == user_id)
