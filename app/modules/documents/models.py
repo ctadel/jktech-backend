@@ -32,6 +32,7 @@ class Document(Base):
 
     user = relationship("User", back_populates="documents")
     stars = relationship("DocumentStar", back_populates="document", cascade="all, delete-orphan")
+    conversations = relationship("Conversation", back_populates="document", passive_deletes=True)
 
 
 class DocumentStar(Base):

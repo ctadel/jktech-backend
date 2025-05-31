@@ -35,18 +35,20 @@ class BasicService:
         limit = PaginationConstants.DOCUMENTS_PER_PAGE
         return limit, offset
 
+    async def get_document_stars_public(self, document_id):
+        return await crud.get_document_stars_public(self.db, document_id)
 
-    async def list_explore_documents(self, page: int):
+    async def list_explore_documents(self, page: int, user_id):
         limit, offset = self._get_limit_offset(page)
-        return await crud.fetch_explore_documents(self.db, limit, offset)
+        return await crud.fetch_explore_documents(self.db, user_id, limit, offset)
 
-    async def list_trending_documents(self, page: int):
+    async def list_trending_documents(self, page: int, user_id):
         limit, offset = self._get_limit_offset(page)
-        return await crud.fetch_trending_documents(self.db, limit, offset)
+        return await crud.fetch_trending_documents(self.db, user_id, limit, offset)
 
-    async def list_latest_documents(self, page: int):
+    async def list_latest_documents(self, page: int, user_id):
         limit, offset = self._get_limit_offset(page)
-        return await crud.fetch_latest_documents(self.db, limit, offset)
+        return await crud.fetch_latest_documents(self.db, user_id, limit, offset)
 
 
 class DocumentService:
@@ -81,10 +83,11 @@ class DocumentService:
                 raise FreeTierException(f"Cannot upload more than {FreeTierLimitations.MAX_UPLOAD_DOCUMENTS} documents")
 
         if is_reupload or document_key:
-            existing_versions = await crud.get_documents_by_key(self.db, document_key)
-            if not existing_versions:
+            existing_version = await crud.get_document_by_key(self.db, document_key)
+            if not existing_version:
                 raise InvalidDocumentException("Document key not found for versioning.")
-            version = max(doc.version for doc in existing_versions) + 1
+            await crud.invalidate_document(self.db, existing_version.id)
+            version = existing_version.version + 1
         else:
             document_key = str(uuid4())
             version = 1
@@ -125,6 +128,15 @@ class DocumentService:
         await sleep(delay)
         logger.info(f"The LLM took {delay} seconds to ingest the document")
         return True
+
+    async def get_document_stars(self, document_id):
+        return await crud.get_document_stars(self.db, document_id, self.user_id)
+
+    async def set_document_stars(self, document_id):
+        return await crud.set_document_stars(self.db, document_id, self.user.id)
+
+    async def delete_document_stars(self, document_id):
+        return await crud.delete_document_stars(self.db, document_id, self.user.id)
 
 
 class IngestionService:
