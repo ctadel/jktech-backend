@@ -39,7 +39,7 @@ async def test_upload_document(client):
 
 @pytest.mark.asyncio
 async def test_list_my_documents(client):
-    response = await client.get("/documents/public/user/ctadel", headers=session_header)
+    response = await client.get("/documents", headers=session_header)
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
