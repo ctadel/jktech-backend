@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
             not os.path.exists(db_url.database):
         from app.common.database import initialize_tables
         initialize_tables()
-        logger.warn("There was no DATABASE_URL provided\nfalling back to sqlite3")
+        logger.warn("No DATABASE_URL provided, Using sqlite3")
 
     yield
     await engine.dispose()
