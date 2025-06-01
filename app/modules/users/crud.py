@@ -3,12 +3,17 @@ from sqlalchemy import select
 
 from app.modules.users.models import User, AccountLevel
 from app.modules.users.schemas import RegisterRequest
-from app.common.exceptions import UserAlreadyExistsException, UserNotFoundException, InvalidUserParameters
+from app.common.exceptions import AccountDeactivatedError, UserAlreadyExistsException, UserNotFoundException, InvalidUserParameters
 
 
 async def get_user_by_username(db: AsyncSession, username: str) -> User | None:
     result = await db.execute(select(User).where(User.username == username))
-    return result.scalars().first()
+    user = result.scalars().first()
+    if not user:
+        raise UserNotFoundException(username=username)
+    if not user.is_active:
+        raise AccountDeactivatedError()
+    return user
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:
