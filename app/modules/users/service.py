@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.database import get_db
 from app.common.auth import hash_password, verify_password, create_access_token
 from app.common.dependencies import get_current_user, get_db
-from app.common.exceptions import InvalidCredentialsException
+from app.common.exceptions import InvalidCredentialsException, UserNotFoundException
+from app.modules.documents.models import Document
 from app.modules.users import crud
 from app.modules.users.models import User
 from app.modules.users.schemas import RegisterRequest, UpdateProfileRequest
@@ -63,23 +64,52 @@ class UserService:
 
 
     ### SUPER ADMIN STUFF ###
-    async def list_users(self, page):
-        if page < 1: page = 1
+    async def get_user_by_id(self, user_id: int) -> User:
+        user = await crud.get_user_by_id(self.db, user_id)
+        if not user:
+            raise UserNotFoundException()
+        return user
+
+    async def list_users(self, page: int = None):
+        base_query = select(User)
+
+        if not page or page < 1:
+            result = await self.db.execute(base_query)
+            return result.scalars().all()
+
         offset = (page - 1) * PaginationConstants.USERS_PER_PAGE
-        result = await self.db.execute(select(User)
-                       .offset(offset)
-                       .limit(PaginationConstants.USERS_PER_PAGE))
+        paginated_query = base_query.offset(offset).limit(PaginationConstants.USERS_PER_PAGE)
+
+        result = await self.db.execute(paginated_query)
         return result.scalars().all()
 
     async def get_profile(self, username):
         return await crud.get_user_by_username(self.db, username)
 
-    async def deactivate_user_by_user_id(self, user_id: str):
+    async def activate_user_by_user_id(self, user_id: int):
+        user = await self.get_user_by_id(user_id)
+        user.is_active = True
+        await self.db.commit()
+
+    async def deactivate_user_by_user_id(self, user_id: int):
         user = await self.get_user_by_id(user_id)
         user.is_active = False
         await self.db.commit()
 
-    async def delete_user_by_user_id(self, user_id: str):
+    async def delete_user_by_user_id(self, user_id: int):
         user = await self.get_user_by_id(user_id)
         await self.db.delete(user)
         await self.db.commit()
+
+    async def list_documents(self, page: int = None):
+        base_query = select(Document)
+
+        if not page or page < 1:
+            result = await self.db.execute(base_query)
+            return result.scalars().all()
+
+        offset = (page - 1) * PaginationConstants.DOCUMENTS_PER_PAGE
+        paginated_query = base_query.offset(offset).limit(PaginationConstants.DOCUMENTS_PER_PAGE)
+
+        result = await self.db.execute(paginated_query)
+        return result.scalars().all()

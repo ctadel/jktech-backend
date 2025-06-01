@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from app.common.dependencies import authorization_level_required
+from app.common.exceptions import AccountDeactivatedError
 from app.modules.users.models import AccountLevel
 from app.modules.users.schemas import TokenResponse, LoginRequest, RegisterRequest, UpdateProfileResponse, UpdateProfileRequest, \
         UpdatePasswordRequest, UpgradeAccountRequest, UserProfile, MessageResponse
@@ -24,6 +24,8 @@ class AuthRoutes:
 
     async def login(self, data: LoginRequest, service:AuthService = Depends(AuthService)) -> TokenResponse:
         user = await service.authenticate_user(data.username, data.password)
+        if not user.is_active:
+            raise AccountDeactivatedError()
         token = service.generate_token(user)
         return {"access_token": token}
 
@@ -94,11 +96,13 @@ class SuperAdminRoutes:
 
         self.router.get(    '/users'                        )(self.list_users)
         self.router.get(    '/user/{username}'              )(self.get_profile)
-        self.router.delete( '/deactivate/{user_id}'         )(self.deactivate_user)
-        self.router.delete( '/delete/{user_id}'             )(self.delete_user)
+        self.router.post(   '/user/{user_id}/activate'      )(self.activate_user)
+        self.router.post(   '/user/{user_id}/deactivate'    )(self.deactivate_user)
+        self.router.delete( '/user/{user_id}/delete'        )(self.delete_user)
+        self.router.get(    '/documents'                    )(self.list_documents)
 
     async def list_users(
-            self, page:int = 1, service: UserService = Depends(UserService)
+            self, page:int = None, service: UserService = Depends(UserService)
             ) -> List[UserProfile]:
         users = await service.list_users(page)
         return [UserProfile.model_validate(user) for user in users]
@@ -109,10 +113,18 @@ class SuperAdminRoutes:
         user = await service.get_profile(username)
         return UserProfile.model_validate(user)
 
-    async def deactivate_user(self, user_id:str, service: UserService = Depends(UserService)):
+    async def deactivate_user(self, user_id:int, service: UserService = Depends(UserService)):
         await service.deactivate_user_by_user_id(user_id)
         return {"message": "User deactivated"}
 
-    async def delete_user(self, user_id: str, service: UserService = Depends(UserService)):
+    async def delete_user(self, user_id: int, service: UserService = Depends(UserService)):
         await service.delete_user_by_user_id(user_id)
         return {"message": "User deleted"}
+
+    async def activate_user(self, user_id: int, service: UserService = Depends(UserService)):
+        await service.activate_user_by_user_id(user_id)
+        return {"message": "User activated"}
+
+    async def list_documents(self, service: UserService = Depends(UserService)):
+        documents = await service.list_documents()
+        return documents

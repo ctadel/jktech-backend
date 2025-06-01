@@ -35,6 +35,7 @@ class UserProfile(BaseModel):
     full_name:str = 'Prajwal Dev'
     email:EmailStr = 'nep.prajwal@gmail.com'
     account_type:str = 'PREMIUM'
+    is_active:bool = True
     created_at:datetime = '2025-11-25 10:42:12'
 
     model_config = {
