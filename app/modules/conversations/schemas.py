@@ -27,7 +27,7 @@ class ConversationResponse(BaseModel):
     created_at: datetime
     user_id: int
     document_id: Optional[int] = None
-    document_owner_id: int = None
+    document_owner_id: Optional[int] = None
 
     model_config = {
         "from_attributes": True

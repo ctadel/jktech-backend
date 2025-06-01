@@ -17,9 +17,9 @@ class UserDocumentsRoutes:
         self.router.post(   ''                              )(self.upload_document)
         self.router.patch(  ''                              )(self.reupload_document)
         self.router.get(    '/stats'                        )(self.get_document_stats)
-        self.router.get(    '/{document_id}/stars'          )(self.get_document_stars)
-        self.router.post(   '/{document_id}/stars'          )(self.set_document_stars)
-        self.router.delete( '/{document_id}/stars'          )(self.delete_document_stars)
+        self.router.get(    '/stars/{document_id}'          )(self.get_document_stars)
+        self.router.post(   '/stars/{document_id}'          )(self.set_document_stars)
+        self.router.delete( '/stars/{document_id}'          )(self.delete_document_stars)
         self.router.get(    '/{document_key}'               )(self.view_document)
         self.router.delete( '/{document_key}'               )(self.delete_document)
 
@@ -79,19 +79,19 @@ class UserDocumentsRoutes:
     async def get_document_stars(
             self, document_id:int,
             service: BasicService = Depends(BasicService),
-            ) -> DocumentResponse:
+            ):
         return await service.get_document_stars(document_id)
 
     async def set_document_stars(
             self, document_id:int,
             service: DocumentService = Depends(DocumentService),
-            ) -> DocumentResponse:
+            ) -> MessageResponse:
         return await service.set_document_stars(document_id)
 
     async def delete_document_stars(
             self, document_id:int,
             service: DocumentService = Depends(DocumentService),
-            ) -> DocumentResponse:
+            ) -> MessageResponse:
         return await service.delete_document_stars(document_id)
 
 

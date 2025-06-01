@@ -1,10 +1,11 @@
 from operator import and_
-from sqlalchemy import update, delete, select
+from sqlalchemy import desc, update, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
 from app.modules.conversations.models import Conversation, Message
 from app.modules.conversations.schemas import ConversationCreateRequest, MessageCreate
+from app.modules.documents.models import Document
 
 async def create_conversation(
         db: AsyncSession,
@@ -17,14 +18,28 @@ async def create_conversation(
     await db.refresh(convo)
     return convo
 
-async def get_user_conversations(db: AsyncSession, user_id):
-    result = await db.execute(select(Conversation).where(
+async def get_user_conversations(db: AsyncSession, user_id: int):
+    stmt = (
+        select(Conversation, Document.user_id.label("document_owner_id"))
+        .join(Document, Document.id == Conversation.document_id, isouter=True)
+        .where(
             and_(
                 Conversation.user_id == user_id,
                 Conversation.is_archived == False
-             )
-        ))
-    return result.scalars().all()
+            )
+        )
+        .order_by(desc(Conversation.updated_at))
+    )
+
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    conversations = []
+    for convo, doc_owner_id in rows:
+        convo.document_owner_id = doc_owner_id if doc_owner_id is not None else None
+        conversations.append(convo)
+
+    return conversations
 
 async def get_conversation_by_id(db: AsyncSession, convo_id) -> Conversation | None:
     result = await db.execute(select(Conversation).where(Conversation.id == convo_id))
