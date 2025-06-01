@@ -86,7 +86,6 @@ class DocumentService:
             existing_version = await crud.get_document_by_key(self.db, document_key)
             if not existing_version:
                 raise InvalidDocumentException("Document key not found for versioning.")
-            await crud.invalidate_document(self.db, existing_version.id)
             version = existing_version.version + 1
         else:
             document_key = str(uuid4())
@@ -103,6 +102,8 @@ class DocumentService:
             version=version,
             is_private=is_private
         )
+        await crud.invalidate_document(self.db, existing_version.id)
+        await crud.invalidate_conversations(self.db, existing_version.id)
         return new_doc
 
     async def get_document(self, document_key: str):
@@ -112,6 +113,10 @@ class DocumentService:
 
         if document.user_id != self.user.id and document.is_private_document:
             raise InvalidDocumentException(document_key)
+
+        stars = await crud.get_document_stars(self.db, document.id, self.user.id)
+        document.total_stars = stars.get('total_stars', 0)
+        document.user_starred = stars.get('user_starred', 0)
 
         return document
 

@@ -16,6 +16,8 @@ class DocumentResponse(BaseModel):
     is_private_document: bool = False
     ingestion_status: str = 'COMPLETED'
     user_id: int = 1
+    user_starred: bool = False
+    total_stars: int = 0
     views: int = 0
 
 class PublicDocumentResponse(BaseModel):
@@ -26,6 +28,7 @@ class PublicDocumentResponse(BaseModel):
     uploaded_at: datetime = datetime.now()
     user_id: int = 1
     user_starred: bool = False
+    total_stars: int = 0
     views: int = 0
 
     model_config = {

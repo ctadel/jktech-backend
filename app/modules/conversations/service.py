@@ -1,6 +1,7 @@
-from fastapi import Depends, HTTPException
-from uuid import UUID
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
+
 
 from app.common.database import get_db
 from app.common.dependencies import get_current_user
@@ -38,19 +39,24 @@ class ConversationService:
         convo = await self.get_conversation(convo_id)
         if not convo:
             raise InvalidConversationException()
+
         await crud.add_message(self.db, convo_id, data)
 
         ai_reply = await IngestionService.query_document(
-                document_id=convo.document_id,
-                query=data.content
-            )
+            document_id=convo.document_id,
+            query=data.content
+        )
 
         ai_response = MessageCreate(
-                role=Role.LLM,
-                content=ai_reply
-            )
-
+            role=Role.LLM,
+            content=ai_reply
+        )
         db_record = await crud.add_message(self.db, convo_id, ai_response)
+
+        convo.updated_at = datetime.now()
+        self.db.add(convo)
+        await self.db.commit()
+
         return db_record
 
     async def get_messages(self, convo_id):
