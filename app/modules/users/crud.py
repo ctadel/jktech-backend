@@ -8,12 +8,7 @@ from app.common.exceptions import AccountDeactivatedError, UserAlreadyExistsExce
 
 async def get_user_by_username(db: AsyncSession, username: str) -> User | None:
     result = await db.execute(select(User).where(User.username == username))
-    user = result.scalars().first()
-    if not user:
-        raise UserNotFoundException(username=username)
-    if not user.is_active:
-        raise AccountDeactivatedError()
-    return user
+    return result.scalars().first()
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> User | None:

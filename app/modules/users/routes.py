@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from app.common.dependencies import authorization_level_required
+from app.common.exceptions import AccountDeactivatedError
 from app.modules.users.models import AccountLevel
 from app.modules.users.schemas import TokenResponse, LoginRequest, RegisterRequest, UpdateProfileResponse, UpdateProfileRequest, \
         UpdatePasswordRequest, UpgradeAccountRequest, UserProfile, MessageResponse
@@ -24,6 +24,8 @@ class AuthRoutes:
 
     async def login(self, data: LoginRequest, service:AuthService = Depends(AuthService)) -> TokenResponse:
         user = await service.authenticate_user(data.username, data.password)
+        if not user.is_active:
+            raise AccountDeactivatedError()
         token = service.generate_token(user)
         return {"access_token": token}
 
