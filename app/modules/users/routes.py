@@ -44,7 +44,7 @@ class UserProfileRoutes:
         self.router.patch(  '/update'                       )(self.update_profile)
         self.router.patch(  '/account/update-password'      )(self.update_password)
         self.router.post(   '/account/update-account-type'  )(self.update_account_type)
-        self.router.post(   '/account/activate'             )(self.deactivate_profile)
+        self.router.post(   '/account/activate'             )(self.activate_profile)
         self.router.delete( '/account/deactivate'           )(self.deactivate_profile)
 
     async def get_user_profile(

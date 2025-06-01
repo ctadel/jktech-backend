@@ -46,7 +46,7 @@ class UserService:
 
     async def update_user_password(self, old_password: str, new_password: str) -> bool:
         if not verify_password(old_password, self.user.hashed_password):
-            raise InvalidCredentialsException(status_code=404, detail="Incorrect Old password")
+            raise InvalidCredentialsException()
         self.user.hashed_password = hash_password(new_password)
         await self.db.commit()
         return True
