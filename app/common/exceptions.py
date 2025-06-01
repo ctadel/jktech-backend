@@ -13,6 +13,10 @@ class InvalidUserParameters(HTTPException):
     def __init__(self, parameter):
         super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Invalid user parameter: {parameter}")
 
+class AccountDeactivatedError(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_423_LOCKED, detail=f"User account is deactivated, please contact support to reactivate your account")
+
 class InvalidAuthToken(HTTPException):
     def __init__(self):
         super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid Token")
