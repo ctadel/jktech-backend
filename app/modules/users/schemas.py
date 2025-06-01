@@ -1,10 +1,11 @@
-from pydantic import BaseModel
+from typing import Optional
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 # Request schemas
 class RegisterRequest(BaseModel):
     username: str = 'ctadel'
-    email:str = 'nep.prajwal@gmail.com'
+    email:EmailStr = 'nep.prajwal@gmail.com'
     password: str = 'somethingwild'
     full_name:str = 'Prajwal Dev'
 
@@ -13,8 +14,8 @@ class LoginRequest(BaseModel):
     password: str = 'somethingwild'
 
 class UpdateProfileRequest(BaseModel):
-    full_name:str = 'Prajwal Dev'
-    email:str = 'nep.prajwal@gmail.com'
+    full_name:Optional[str] = 'Prajwal Dev'
+    email:Optional[EmailStr] = 'nep.prajwal@gmail.com'
 
 class UpdatePasswordRequest(BaseModel):
     old_password: str = 'somethingwild'
@@ -32,7 +33,7 @@ class UserProfile(BaseModel):
     id:int = 1
     username:str = 'ctadel'
     full_name:str = 'Prajwal Dev'
-    email:str = 'nep.prajwal@gmail.com'
+    email:EmailStr = 'nep.prajwal@gmail.com'
     account_type:str = 'PREMIUM'
     created_at:datetime = '2025-11-25 10:42:12'
 
