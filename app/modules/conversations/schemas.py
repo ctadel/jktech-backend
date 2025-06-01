@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 from app.modules.conversations.models import Role
@@ -26,7 +26,8 @@ class ConversationResponse(BaseModel):
     title: str | None
     created_at: datetime
     user_id: int
-    document_id: int
+    document_id: Optional[int] = None
+    document_owner_id: Optional[int] = None
 
     model_config = {
         "from_attributes": True

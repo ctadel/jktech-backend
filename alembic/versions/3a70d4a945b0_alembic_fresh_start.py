@@ -1,8 +1,8 @@
-"""added conversation and messages models
+"""Alembic Fresh start
 
-Revision ID: 92f36f7cad69
-Revises: 52ccbdf46c87
-Create Date: 2025-05-25 17:27:02.760349
+Revision ID: 3a70d4a945b0
+Revises: 
+Create Date: 2025-06-01 08:41:08.611358
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '92f36f7cad69'
-down_revision: Union[str, None] = '52ccbdf46c87'
+revision: str = '3a70d4a945b0'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

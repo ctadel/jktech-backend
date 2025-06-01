@@ -17,13 +17,17 @@ class UserDocumentsRoutes:
         self.router.post(   ''                              )(self.upload_document)
         self.router.patch(  ''                              )(self.reupload_document)
         self.router.get(    '/stats'                        )(self.get_document_stats)
+        self.router.get(    '/stars/{document_id}'          )(self.get_document_stars)
+        self.router.post(   '/stars/{document_id}'          )(self.set_document_stars)
+        self.router.delete( '/stars/{document_id}'          )(self.delete_document_stars)
         self.router.get(    '/{document_key}'               )(self.view_document)
         self.router.delete( '/{document_key}'               )(self.delete_document)
 
     async def get_user_documents(
             self, service: DocumentService = Depends(DocumentService),
             ) -> List[DocumentResponse]:
-        return await service.list_user_documents()
+        response = await service.list_user_documents()
+        return response
 
     async def get_document_stats(
             self, service: DocumentService = Depends(DocumentService),
@@ -35,7 +39,7 @@ class UserDocumentsRoutes:
             title: str = Form(...),
             is_private: bool = Form(False),
             file: UploadFile = File(...),
-            service = Depends(DocumentService),
+            service: DocumentService = Depends(DocumentService),
             ) -> DocumentResponse:
         return await service.process_document(
             file=file,
@@ -49,7 +53,7 @@ class UserDocumentsRoutes:
             title: Optional[str] = Form(...),
             is_private: Optional[bool] = Form(...),
             file: UploadFile = File(...),
-            service = Depends(DocumentService),
+            service: DocumentService = Depends(DocumentService),
             ) -> DocumentResponse:
         return await service.process_document(
             document_key=document_key,
@@ -72,6 +76,25 @@ class UserDocumentsRoutes:
         return {'message': 'Document successfully deleted'}
 
 
+    async def get_document_stars(
+            self, document_id:int,
+            service: BasicService = Depends(BasicService),
+            ):
+        return await service.get_document_stars(document_id)
+
+    async def set_document_stars(
+            self, document_id:int,
+            service: DocumentService = Depends(DocumentService),
+            ) -> MessageResponse:
+        return await service.set_document_stars(document_id)
+
+    async def delete_document_stars(
+            self, document_id:int,
+            service: DocumentService = Depends(DocumentService),
+            ) -> MessageResponse:
+        return await service.delete_document_stars(document_id)
+
+
 class PublicDocumentsRoutes:
     def __init__(self, prefix: str = "/documents"):
         self.router = APIRouter(
@@ -92,23 +115,26 @@ class PublicDocumentsRoutes:
 
     async def explore_documents(
             self, page: int = 1,
+            user_id: int = None,
             service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
-        documents = await service.list_explore_documents(page)
+        documents = await service.list_explore_documents(page, user_id)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def trending_documents(
             self, page: int = 1,
+            user_id: int = None,
             service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
-        documents = await service.list_trending_documents(page)
+        documents = await service.list_trending_documents(page, user_id)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
     async def latest_documents(
             self, page: int = 1,
+            user_id: int = None,
             service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
-        documents = await service.list_latest_documents(page)
+        documents = await service.list_latest_documents(page, user_id)
         return [PublicDocumentResponse.model_validate(document) for document in documents]
 
 class LLMRoutes:
