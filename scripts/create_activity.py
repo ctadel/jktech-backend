@@ -34,7 +34,9 @@ def _main(total_users, total_documents):
     users = UserService().register_n_users(total_users)
 
     print("\n==> Uploading documents...")
-    documents = DocumentService().upload_documents(users, total_documents)
+    document_service = DocumentService()
+    documents = document_service.upload_documents(users, total_documents)
+    document_service.star_document(users, documents)
 
     print("\n==> Starting conversations...")
     ConversationService().initiate_conversations(users, documents)
