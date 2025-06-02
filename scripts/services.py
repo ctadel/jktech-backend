@@ -100,6 +100,20 @@ class DocumentService(APIService):
 
         return self.documents
 
+    def star_document(self, users: List[User], documents: List[Document]):
+        for user in users:
+            interactable_documents = [
+                document for document in documents
+                if (document.user_id == user.id or not document.is_private)
+            ]
+            for document in interactable_documents:
+                if random.random() > 0.7:
+                    continue  # Skip some documents randomly
+                response = self._request("POST", f"/documents/stars/{document.id}", headers=user.get_auth_header())
+
+                if response and response.status_code == 200:
+                    print(f"[OK] Document {document.title} starred by {user.username}")
+
 
 class ConversationService(APIService):
 
