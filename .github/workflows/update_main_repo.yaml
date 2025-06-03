@@ -33,7 +33,7 @@ jobs:
 
   update-submodule-in-main:
     name: Update Submodule Ref in Main Repo
-    # needs: run-backend-tests
+    needs: run-backend-tests
     runs-on: ubuntu-latest
 
     steps:
@@ -44,6 +44,10 @@ jobs:
           token: ${{ secrets.PAT }}
           ref: master
           submodules: true
+
+      - name: Create/update sync/backend branch
+        run: |
+          git checkout -B sync/backend
 
       - name: Configure git user
         run: |
@@ -61,7 +65,7 @@ jobs:
           if ! git diff --cached --exit-code -- backend; then
             echo "changes=true" >> "$GITHUB_OUTPUT"
             git commit -m "Actions: update backend submodule"
-            git push origin master
+            git push origin sync/backend --force
 
           else
             echo "No changes to commit"
