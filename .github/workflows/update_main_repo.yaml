@@ -60,7 +60,7 @@ jobs:
       - name: Commit and push if changes
         run: |
           git add backend
-          if ! git diff --cached --quiet; then
+          if git status --porcelain | grep '^M  backend'; then
             git commit -m "Actions: update backend submodule"
             git push origin sync/backend
           else
