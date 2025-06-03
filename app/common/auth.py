@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
-from jose import JWTError, jwt
+from jose import jwt
 import bcrypt
+from app.common.exceptions import InvalidAuthToken
 from app.config import settings
 
 def hash_password(password: str) -> str:
@@ -12,9 +13,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.now() \
-             + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(timezone.utc) \
+            + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
+    exipiration_time = expire.strftime("%Y-%m-%d %H:%M:%S")
+    print(f"Token will expire at: {exipiration_time}")
     return jwt.encode(
         to_encode,
         settings.JWT_SECRET_KEY,
@@ -23,6 +26,21 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def decode_access_token(token: str):
     try:
-        return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-    except JWTError:
-        return None
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM],
+        )
+
+        exp = payload.get("exp")
+        if exp:
+            exp_dt = datetime.fromtimestamp(exp, tz=timezone.utc)
+            print(f"Token decoded successfully, will expire at: {exp_dt}")
+
+        return payload
+
+    except jwt.ExpiredSignatureError:
+        raise InvalidAuthToken("Token has expired, please log in again")
+
+    except jwt.JWTError:
+        raise InvalidAuthToken("Invalid token")

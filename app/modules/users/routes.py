@@ -12,10 +12,11 @@ from app.modules.users.service import AuthService, UserService
 class AuthRoutes:
     def __init__(self, prefix: str = "/auth"):
         self.router = APIRouter(prefix=prefix, tags=["Auth"])
+        self.router2 = APIRouter(prefix=prefix)
 
         self.router.post(   '/register'                     )(self.register)
         self.router.post(   '/login'                        )(self.login)
-        self.router.post(   '/token',                       )(self.get_token)
+        self.router2.post(  '/token',                       )(self.get_token)
 
     async def register(self, data: RegisterRequest, service:AuthService = Depends(AuthService)) -> TokenResponse:
         user = await service.register_user(data)
@@ -29,6 +30,7 @@ class AuthRoutes:
         token = service.generate_token(user)
         return {"access_token": token}
 
+    # This endpoint is used to get a token using OAuth2PasswordRequestForm
     async def get_token(
             self, form_data: OAuth2PasswordRequestForm = Depends(),
             service:AuthService = Depends(AuthService)
@@ -60,7 +62,7 @@ class UserProfileRoutes:
         updated_user = await service.update_user_profile(data)
         return {
             "message": "Profile updated",
-            "user": UserProfile.model_validate(updated_user)
+            "user": updated_user
         }
 
     async def update_account_type(
@@ -104,14 +106,12 @@ class SuperAdminRoutes:
     async def list_users(
             self, page:int = None, service: UserService = Depends(UserService)
             ) -> List[UserProfile]:
-        users = await service.list_users(page)
-        return [UserProfile.model_validate(user) for user in users]
+        return await service.list_users(page)
 
     async def get_profile(
             self, username:str, service: UserService = Depends(UserService)
             ) -> UserProfile:
-        user = await service.get_profile(username)
-        return UserProfile.model_validate(user)
+        return await service.get_profile(username)
 
     async def deactivate_user(self, user_id:int, service: UserService = Depends(UserService)):
         await service.deactivate_user_by_user_id(user_id)
