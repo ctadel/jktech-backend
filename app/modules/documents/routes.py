@@ -110,32 +110,28 @@ class PublicDocumentsRoutes:
             page: int = 1,
             service = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
-        documents = await service.list_user_documents(username, page)
-        return [PublicDocumentResponse.model_validate(document) for document in documents]
+        return await service.list_user_documents(username, page)
 
     async def explore_documents(
             self, page: int = 1,
             user_id: int = None,
             service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
-        documents = await service.list_explore_documents(page, user_id)
-        return [PublicDocumentResponse.model_validate(document) for document in documents]
+        return await service.list_explore_documents(page, user_id)
 
     async def trending_documents(
             self, page: int = 1,
             user_id: int = None,
             service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
-        documents = await service.list_trending_documents(page, user_id)
-        return [PublicDocumentResponse.model_validate(document) for document in documents]
+        return await service.list_trending_documents(page, user_id)
 
     async def latest_documents(
             self, page: int = 1,
             user_id: int = None,
             service: BasicService = Depends(BasicService)
             ) -> List[PublicDocumentResponse]:
-        documents = await service.list_latest_documents(page, user_id)
-        return [PublicDocumentResponse.model_validate(document) for document in documents]
+        return await service.list_latest_documents(page, user_id)
 
 class LLMRoutes:
     def __init__(self, prefix: str = "/llm"):
@@ -148,12 +144,10 @@ class LLMRoutes:
             self, document_id:int,
             service = Depends(IngestionService)
             ) -> DocumentIngestionStatusResponse:
-        document = await service.get_document_status(document_id)
-        return DocumentIngestionStatusResponse.model_validate(document)
+        return await service.get_document_status(document_id)
 
     async def stop_document_ingestion(
             self, document_id:int,
             service = Depends(IngestionService)
             ) -> DocumentIngestionStatusResponse:
-        document = await service.get_document_status(document_id)
-        return DocumentIngestionStatusResponse.model_validate(document)
+        return await service.get_document_status(document_id)

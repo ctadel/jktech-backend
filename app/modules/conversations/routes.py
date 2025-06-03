@@ -21,22 +21,19 @@ class ConversationRoutes:
     async def list_user_conversations(
             self, service: ConversationService = Depends(ConversationService)
             ) -> List[ConversationResponse]:
-        conversations = await service.list_conversations()
-        return [ConversationResponse.model_validate(convo) for convo in conversations]
+        return await service.list_conversations()
 
     async def start_new_conversation(
             self, data: ConversationCreateRequest,
             service: ConversationService = Depends(ConversationService)
             ) -> ConversationResponse:
-        convo = await service.create_conversation(data)
-        return ConversationResponse.model_validate(convo)
+        return await service.create_conversation(data)
 
     async def add_message(
             self, convo_id: UUID, data: MessageCreate,
             service: ConversationService = Depends(ConversationService)
             ) -> MessageRead:
-        message = await service.post_message(convo_id, data)
-        return MessageRead.model_validate(message)
+        return await service.post_message(convo_id, data)
 
     async def get_conversation(
             self, convo_id: UUID,
