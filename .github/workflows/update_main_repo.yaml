@@ -1,0 +1,68 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  run-backend-tests:
+    name: Backend CI Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11.3
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11.3"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Use the sample .env file
+      run: cp .env.sample .env
+    - name: Testing Users endpoints
+      run: pytest app/modules/users/tests
+    - name: Testing Documents endpoints
+      run: pytest app/modules/documents/tests
+    - name: Testing End to End
+      run: pytest tests
+
+  update-submodule-in-main:
+    name: Update Submodule Ref in Main Repo
+    needs: run-backend-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+        with:
+          repository: ctadel/ctadel-library
+          token: ${{ secrets.PAT }}
+          ref: master
+
+      - name: Create/update sync/backend branch
+        run: |
+          git checkout -B sync/backend
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update submodule pointer
+        run: |
+          git submodule update --remote backend
+
+      - name: Commit and push if changes
+        run: |
+          git add backend
+          if ! git diff --cached --quiet; then
+            git commit -m "Actions: update backend submodule"
+            git push origin sync/backend
+          else
+            echo "No changes to commit"
+          fi
