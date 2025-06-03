@@ -1,5 +1,10 @@
 from fastapi import HTTPException, status
 
+
+class InvalidAuthToken(HTTPException):
+    def __init__(self, message: str = "Invalid authentication token"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=message)
+
 class UserAlreadyExistsException(HTTPException):
     def __init__(self, username=None, email=None):
         message = 'User already exists'
@@ -16,10 +21,6 @@ class InvalidUserParameters(HTTPException):
 class AccountDeactivatedError(HTTPException):
     def __init__(self):
         super().__init__(status_code=status.HTTP_423_LOCKED, detail=f"User account is deactivated, please contact support to reactivate your account")
-
-class InvalidAuthToken(HTTPException):
-    def __init__(self):
-        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid Token")
 
 class UserNotFoundException(HTTPException):
     def __init__(self):
