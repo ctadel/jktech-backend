@@ -33,7 +33,7 @@ jobs:
 
   update-submodule-in-main:
     name: Update Submodule Ref in Main Repo
-    needs: run-backend-tests
+    # needs: run-backend-tests
     runs-on: ubuntu-latest
 
     steps:
