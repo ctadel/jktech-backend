@@ -65,7 +65,8 @@ jobs:
           if ! git diff --cached --exit-code -- backend; then
             echo "changes=true" >> "$GITHUB_OUTPUT"
             git commit -m "Actions: update backend submodule"
-            git push origin sync/backend
+            git push origin sync/backend --force
+
           else
             echo "No changes to commit"
           fi
