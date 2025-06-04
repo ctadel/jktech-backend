@@ -1,6 +1,6 @@
-# ctadel-library (Backend)
+# ctadel-web-library (Backend)
 
-A FastAPI-based backend service for document ingestion, querying, and user management. It powers the ctadel-library platform, where users can upload public documents (e.g., eBooks, research papers, movie scripts), engage in AI-assisted conversations over content, and interact through bookmarks and more.
+A FastAPI-based backend service for document ingestion, querying, and user management. It powers the ctadel-web-library application, where users can upload public documents (e.g., eBooks, research papers, movie scripts), engage in AI-assisted conversations over content, and interact through bookmarks and more.
 
 Frontend repo: [ctadel/wlib-frontend](https://github.com/ctadel/wlib-frontend)
 
