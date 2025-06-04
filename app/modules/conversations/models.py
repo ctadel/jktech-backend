@@ -9,7 +9,7 @@ from app.common.database import Base
 
 class Role(enum.Enum):
     USER = "user"
-    LLM = "llm-jktech-v1"
+    LLM = "llm-wlib-v1"
 
 class Conversation(Base):
     __tablename__ = "conversations"

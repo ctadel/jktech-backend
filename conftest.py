@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.main import app
-from app.common.database import get_db, Base  # Ensure Base is imported here
+from app.common.database import get_db, Base
 from app.common.auth import hash_password
 from app.modules.users.models import User, AccountLevel
 from app.config import settings
@@ -58,7 +58,7 @@ async def test_user(db: AsyncSession):
     user = User(
         username="ctadel",
         full_name="Prajwal Dev",
-        email="prajwal@jktech.com",
+        email="prajwal@ctadel.com",
         account_type=AccountLevel.BASIC.name,
         hashed_password=hash_password("testpass")
     )

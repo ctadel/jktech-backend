@@ -2,7 +2,7 @@
 
 A FastAPI-based backend service for document ingestion, querying, and user management. It powers the ctadel-library platform, where users can upload public documents (e.g., eBooks, research papers, movie scripts), engage in AI-assisted conversations over content, and interact through bookmarks and more.
 
-Frontend repo: [ctadel/jktech-frontend](https://github.com/ctadel/jktech-frontend)
+Frontend repo: [ctadel/wlib-frontend](https://github.com/ctadel/wlib-frontend)
 
 ---
 
@@ -75,8 +75,8 @@ Target audience includes researchers, movie reviewers, students, and interviewee
 ### 1. Clone & Run (Local Dev)
 
 ```bash
-git clone https://github.com/ctadel/jktech-backend
-cd jktech-backend
+git clone https://github.com/ctadel/wlib-backend
+cd wlib-backend
 cp .env.sample .env
 # Update .env with JWT_SECRET_KEY, CORS_ALLOWED_ORIGINS, DATABASE_URL
 pip install -r requirements.txt
@@ -86,8 +86,8 @@ python run.py
 ### 2. Docker (Optional)
 
 ```bash
-docker build -t jktech-backend .
-docker run -p 8000:8000 --env-file .env jktech-backend
+docker build -t wlib-backend .
+docker run -p 8000:8000 --env-file .env wlib-backend
 ```
 
 ---
@@ -122,6 +122,29 @@ Tests include:
 * Unit tests per module
 * Route tests
 * E2E test: `test_e2e.py`
+
+## 🌊 Create Activity and demo users
+
+This is already included in the docker-compose file in the main repository
+but you can also run these scripts manually to create demo users and activity data.
+This uses the FastAPI, so the app needs to be up and running
+Update the variable `API_URL` in the .env file to point to the running app.
+
+Example `.env` for scripts:
+
+```.env
+API_URL=http://localhost:8000
+```
+
+Then run the scripts:
+
+```bash
+# This script creates demo users basic:password, premium:password, moderator:password
+python scripts/create_demo_users.py
+
+# This script creates activity for n users and documents
+python scripts/create_activity.py --users 100 --documents 20000
+```
 
 ---
 
