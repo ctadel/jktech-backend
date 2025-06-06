@@ -1,4 +1,4 @@
-name: CI - Run Test Cases
+name: Pull Request Tests
 
 on:
   pull_request:
