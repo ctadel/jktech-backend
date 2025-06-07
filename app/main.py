@@ -45,8 +45,3 @@ app.add_middleware(CORSMiddleware,
 @app.get("/")
 async def health_check():
     return {"status": "ok"}
-
-#TODO: Remove this after development
-@app.get("/settings")
-async def get_settings():
-    return settings.__dict__
